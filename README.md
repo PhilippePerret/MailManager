@@ -15,7 +15,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install mail-manager
+    $ gem install mail_manager
 
 ## Usage
 
@@ -29,6 +29,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/mail-manager.
+Bug reports and pull requests are welcome on GitHub at https://github.com/PhilippePerret/MailManager.
 
 # MailManager

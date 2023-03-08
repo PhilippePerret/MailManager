@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    mail-manager (0.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    minitest (5.18.0)
+    minitest-color (0.0.2)
+      minitest (~> 5)
+    rake (12.3.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mail-manager!
+  minitest (~> 5.0)
+  minitest-color
+  rake (~> 12.0)
+
+BUNDLED WITH
+   2.1.4
