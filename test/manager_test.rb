@@ -14,11 +14,14 @@ class MailManagerTest < Minitest::Test
     assert_raises do 
       MailManager.send
     end
+    assert_silent do
+      MailManager.send(simple_mail_file)
+    end
   end
 
   def test_path_valid_method
     assert_respond_to MailManager, :path_valid?
-    path = File.expand_path('./test/assets/mail_files/simple.md')
+    path = simple_mail_file
     assert MailManager.path_valid?(path)
     res = capture_io do
       refute MailManager.path_valid?("#{path}.bad")
@@ -30,4 +33,10 @@ class MailManagerTest < Minitest::Test
     assert_match('introuvable', res.join("\n"))
   end
 
+
+
+
+  def simple_mail_file
+    @simple_mail_file ||= File.expand_path('./test/assets/mail_files/simple.md')
+  end
 end

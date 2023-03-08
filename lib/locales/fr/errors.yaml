@@ -1,3 +1,5 @@
 ---
 bad_extension: "Le fichier '%s' porte une mauvaise extension (extension markdown attendue, .md)"
 unfound_mail_file: Le fichier '%s' est introuvable.
+source_file:
+  no_metadata: "Le fichier source (markdown) doit définir les métadonnées dans son entête."
