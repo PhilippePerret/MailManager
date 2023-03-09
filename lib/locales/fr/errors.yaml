@@ -2,9 +2,11 @@
 source_file:
   bad_extension: "Le fichier '%s' porte une mauvaise extension (extension markdown attendue, .md)"
   unfound_mail_file: "Le fichier '%s' est introuvable."
-  is_nil: 'Le path au fichier source doit être défini'
+  is_nil: 'Le path au fichier source doit être défini%s'
   no_metadata: "Le fichier source (markdown) doit définir les métadonnées dans son entête."
   invalid_metadata: 'Les métadonnées sont invalides'
   missing_to: 'il manque le destinataire (To = )'
   missing_from: 'il manque l’expéditeur (To = )'
   missing_subject: 'il manque le sujet du message (Subject = )'
+mail:
+  invalid: "Le mail '%s' est invalide"

@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby -wU
+=begin
+
+  @usage
+
+    send-mail "path/to/file/mail.md"
+
+
+=end
+require 'clir'
+require 'mail_manager'
+
+CLI.init
+if help?
+  clear
+  puts <<~TEXT
+  #{'*****************************'.bleu}
+  #{'***   Aide de send-mail   ***'.bleu}
+  #{'*****************************'.bleu}
+  
+  send-mail est une commande qui permet d'envoyer un mail ou un 
+  mailing à partir d'un unique fichier markdown définissant aussi 
+  bien le contenu que les destinataires et les conditions d'envoi.
+
+  #{'Usage simple'.bleu}
+  #{'------------'.bleu}
+
+      #{'send-mail /path/to/file.md'.jaune}
+
+          Procède à l'envoi du mail défini dans file.md à l'adresse
+          indiquée.
+
+  #{'Ouverture du fichier mail'.bleu}
+
+      #{'send-mail open /path/to/file.md'.jaune}
+
+  #{'Ouverture du manuel'.bleu}
+
+      #{'send-mail -h'.jaune}
+
+  TEXT
+else
+  case CLI.main_command
+  when 'manuel','manual'
+    puts "Je dois apprendre à ouvrir le manuel".jaune
+    path = if CLI.option(:dev)
+      MailManager::MANUEL_MD_PATH
+    else
+      MailManager::MANUEL_PDF_PATH
+    end
+  when 'open'
+    mail_file_path = CLI.component.first
+    if File.exist?(mail_file_path)
+      `open -a Typora "#{mail_file_path}"`
+    else
+      puts "Le fichier #{mail_file_path.inspect} est introuvable…".rouge
+    end
+  else
+    mail_file_path = CLI.main_command
+    mail_file_path = File.expand_path(mail_file_path) if mail_file_path
+    require_relative "../lib/mail_manager"
+    MailManager.send(mail_file_path, **CLI.options)
+  end
+end

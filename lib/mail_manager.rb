@@ -1,26 +1,28 @@
 require 'yaml'
 require 'clir'
-require "mail_manager/version"
-require 'mail_manager/constants'
-require "mail_manager/messages_and_errors"
-require "mail_manager/source_file"
-require "mail_manager/image_manager"
-require "mail_manager/message"
-require "mail_manager/mail"
-require "mail_manager/sender"
+require_relative "mail_manager/version"
+require_relative 'mail_manager/constants'
+require_relative "mail_manager/messages_and_errors"
+require_relative "mail_manager/source_file"
+require_relative "mail_manager/recipient"
+require_relative "mail_manager/image_manager"
+require_relative "mail_manager/message"
+require_relative "mail_manager/mail"
+require_relative "mail_manager/sender"
 
 module MailManager
   class Error < StandardError; end
 
   # = main =
   # 
-  # Méthode principale pour envoyer un mail
+  # Méthode principale pour envoyer un mail à partir d'un
+  # fichier markdown à entête métadonnées.
   # 
   def self.send(path, **options)
     path_valid?(path) || return
     source = MailManager::SourceFile.new(path)
     mail   = MailManager::Mail.new(source)
-    sender = MailManager::Sender.new(mail)
+    sender = MailManager::Sender.new(mail, source)
     if sender.send_now?
       sender.send 
     else

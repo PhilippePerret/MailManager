@@ -27,21 +27,24 @@ def message
 end
 def raw_message ; @raw_message  end
 def subject     ; @subject      ||= metadata['subject']  end
-def expediteur  ; @expediteur   ||= metadata['from']  end
-
-
-# @return un destinataire unique ou une liste de destinataires
-def destinataire
-  @destinataire ||= begin
-    dst = metadata['to']
-    if dst.match?('@')
-      # - Destinataire unique -
+def sender
+  @sender ||= begin
+    fr = metadata['from']
+    if fr.match?(/</)
+      found = fr.match(/^(.+?)<(.+?)>$/)
+      {full: fr, mail: found[2].strip, patronyme: found[1].strip}
     else
-      # - Liste de destinataires -
+      {full: fr, mail: fr, patronyme: nil}
     end
   end
 end
 
+
+# @return [Array<MailManager::Recipient>] la liste de destinataires
+# même s'il n'y en a qu'un seul.
+def destinataires
+  @destinataires ||= MailManager::Recipient.destinataires_from(metadata['to'], **metadata)
+end
 
 # --- Méthodes de traitement du message ---
 

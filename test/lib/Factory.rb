@@ -25,7 +25,10 @@ class Factory
 ###################      CLASS       ###################
 class << self
 
-  def source_file(**options)
+  def source_file(options = {})
+    if options.is_a?(String)
+      options = {name: options}
+    end
     options.key?(:name) || options.merge!(name: 'simple')
     path = source_file_path(options[:name])
     MailManager::SourceFile.new(path)

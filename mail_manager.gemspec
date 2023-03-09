@@ -14,6 +14,8 @@ Gem::Specification.new do |s|
   s.metadata["allowed_push_host"] = "https://github.com/PhilippePerret/MailManager"
 
   s.add_dependency 'kramdown'
+  s.add_dependency 'securerandom'
+  s.add_dependency 'net/smtp'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'minitest-color'
 
