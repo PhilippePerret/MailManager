@@ -2,19 +2,24 @@ PATH
   remote: .
   specs:
     mail-manager (0.0.1)
+      kramdown
 
 GEM
   remote: https://rubygems.org/
   specs:
+    kramdown (2.4.0)
+      rexml
     minitest (5.18.0)
     minitest-color (0.0.2)
       minitest (~> 5)
     rake (12.3.3)
+    rexml (3.2.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  kramdown
   mail-manager!
   minitest (~> 5.0)
   minitest-color

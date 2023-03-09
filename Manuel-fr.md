@@ -25,3 +25,9 @@ Comment ça va ?
 Phil
 
 ~~~
+
+## Définition de la police et de la taille
+
+Utiliser `font_family = ...` et `font_size = 14pt` dans les métadonnées.
+
+Par défaut, la police est 'Times' et la taille est '14pt'.

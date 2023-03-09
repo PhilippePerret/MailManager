@@ -2,8 +2,10 @@ require 'yaml'
 require 'clir'
 require "mail_manager/version"
 require 'mail_manager/constants'
-require "mail_manager/messages"
+require "mail_manager/messages_and_errors"
 require "mail_manager/source_file"
+require "mail_manager/image_manager"
+require "mail_manager/message"
 require "mail_manager/mail"
 require "mail_manager/sender"
 
@@ -32,11 +34,12 @@ module MailManager
   # mail (SourceFile) est valide. C'est-à-dire s'il existe et qu'il
   # porte l'extension Markdown (.md)
   def self.path_valid?(path)
+    path.nil? && raise('is_nil')
     File.extname(path) == '.md' || raise('bad_extension')
     File.exist?(path) || raise('unfound_mail_file')
     return true
   rescue Exception => e
-    msg = ERRORS[e.message.to_sym] % path
+    msg = ERRORS['source_file'][e.message] % path
     puts msg.rouge
     return false
   end

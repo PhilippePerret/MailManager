@@ -14,9 +14,7 @@ class MailManagerTest < Minitest::Test
     assert_raises do 
       MailManager.send
     end
-    assert_silent do
-      MailManager.send(simple_mail_file)
-    end
+    assert MailManager.send(simple_mail_file)
   end
 
   def test_path_valid_method
@@ -37,6 +35,6 @@ class MailManagerTest < Minitest::Test
 
 
   def simple_mail_file
-    @simple_mail_file ||= File.expand_path('./test/assets/mail_files/simple.md')
+    @simple_mail_file ||= Factory.source_file_path('simple')
   end
 end
