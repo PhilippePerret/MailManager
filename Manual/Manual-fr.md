@@ -2,13 +2,24 @@
 
 
 
-## Envoi d’un mail/mailing en ligne de commande
+## mail/mailing en ligne de commande
+
+Jouer la commande :
 
 ~~~bash
 send-mail path/to/mail.md
 ~~~
 
 Le fichier `path/to/mail.md` qui définit toutes les données doit être [correctement formaté](#mail-file).
+
+### Options de la ligne de commande
+
+~~~txt
+-s/--simulation 		Pour faire simplement une simulation d'envoi
+
+-e/--mail_errors		Pour procéder au dernier envoi avec les mails qui ont 
+										échoué.
+~~~
 
 
 

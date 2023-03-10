@@ -2,6 +2,7 @@ module MailManager
 
   GEM_LIB_FOLDER = File.expand_path(File.dirname(__dir__))
   GEM_FOLDER = File.dirname(GEM_LIB_FOLDER)
+  TMP_FOLDER = mkdir(File.join(GEM_FOLDER,'tmp'))
 
   require '/Users/philippeperret/.secret/mail'
   DSMTP = MAILS_DATA[:smtp]
@@ -9,7 +10,8 @@ module MailManager
 
 
   CLI.set_options_table({
-    s: :simulation
+    :s => :simulation,
+    :e => :mail_errors, # pour renvoyer aux mails erronnés
   })
 
 FEMININES = {
