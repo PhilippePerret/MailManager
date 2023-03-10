@@ -24,9 +24,20 @@ class Message
   # = main =
   # 
   # Méthode de sortie qui retourne le code HTML complet du 
-  # message (à partir de raw_code.
+  # message (à partir de raw_code).
   # 
+  # - On assemble le code est on 
+  # - on le transforme en quoted-printable
+  # - on le découpage en ligne de 76 caractères
   def to_html
+    assemblage
+  end
+
+  # Construction du code complet
+  # 
+  # @return [HTMLString] Le code complet du message en HTML
+  # 
+  def assemblage
     <<~HTML
     <!DOCTYPE html>
     <html lang="fr">
@@ -39,7 +50,6 @@ class Message
     </html>
     HTML
   end
-
 
   # @return [HTMLString] les rangées de la table pour le mail
   def html_rows
@@ -90,7 +100,7 @@ end
 def traite_table_in_kramdown_code(code_html)
   return code_html if not(code_html.match?('<table>'))
   code_html = code_html
-    .gsub(/<table>/, '<p><table width="100%">')
+    .gsub(/<table>/, '<p><table width="100%%">')
     .gsub(/<\/table>/, '</table></p>')
   # 
   # Boucle sur le contenu de toutes les cellules

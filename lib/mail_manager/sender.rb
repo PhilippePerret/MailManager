@@ -49,11 +49,11 @@ end
 
 # Pour envoyer le mail tout de suite
 def send
-
+  clear
   # 
   # Nombre de mails à envoyer
   # 
-  Object.define('NOMBRE_MAILS', recipients.count)
+  Object.const_set('NOMBRE_MAILS', recipients.count)
 
   #
   # Demander confirmation, s'il y a plus d'un certain nombre
@@ -64,6 +64,10 @@ def send
       puts "Bien, je renonce.".bleu
       return
     end
+    # 
+    # Ouvrir le log du rapporteur si on a plus de 5 mails
+    # 
+    reporter.open_log_file
   end
 
   # 
@@ -81,11 +85,16 @@ def send
   # 
   recipients.each_with_index do |destinataire, idx|
     # +destinataire+ est une instance MailManager::Recipient
+    
+    # 
+    # Fabrication du code final en fonction du destinataire
+    # 
     code_final = code_mail_final(destinataire)
     # 
     # Temporisation
     # 
     temporiser(idx, destinataire.mail) unless no_delai?
+    STDOUT.write "\rEnvoi du message…".ljust(console_width).bleu
 
     if simulation?
       simule_envoi_mail(destinataire, code_final)
@@ -99,9 +108,9 @@ def send
           smtp.send_message(code_final,sender_mail,destinataire.mail)
         end
       rescue Exception => e
-        reporter.add_failure(destinataire, e)
+        reporter.add_failure(destinataire, source_file, e)
       else
-        reporter.add_success(destinataire)
+        reporter.add_success(destinataire, source_file)
       end
     end
   end
@@ -134,19 +143,24 @@ end
 # @param [Integer] idx Indice du message (0-start)
 # @param [String] mail Adresse mail en attente d'être envoyé
 def temporiser(idx, mail)
-  secondes = 4 + rand(26)
+  secondes = delai_incompressible + rand(delai_compressible)
   nieme = idx > 0 ? "#{idx + 1}e" : '1er'
   while (secondes -= 1) > 0
-    STDOUT.write "\rAttente de #{secondes} secondes avant l'envoi du #{nieme} message / #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
+    STDOUT.write "\rAttente de #{secondes} secondes avant l'envoi du #{nieme} message sur #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
     sleep 1
   end
+end
+def delai_incompressible
+  @delai_incompressible ||= simulation? ? 2 : 4
+end
+def delai_compressible
+  @delai_compressible ||= simulation? ? 10 : 26
 end
 
 def reset_simulation
   File.delete(mail_femme_path) if File.exist?(mail_femme_path)
   File.delete(mail_homme_path) if File.exist?(mail_homme_path)
   puts "*** SIMPLE SIMULATION DE L'ENVOI ***".bleu
-  del = '-'*80
 end
 
 def simule_envoi_mail(destinataire, code_final)
@@ -168,27 +182,7 @@ end
 
 # @return [String] Le code final du mail, prêt à l'envoi
 def code_mail_final(recipient)
-  data_template = {
-    destinataire: recipient.as_to,
-    message:      source_file.message
-  }
-  cmail = template  % data_template
-
-  if cmail.match?(/\%\{/)
-    data_template = recipient.as_hash.merge(FEMININES[recipient.sexe])
-    cmail = cmail % data_template
-  end
-  return cmail
-end
-
-# @return [String] Le template du mail
-# 
-# Sont à remplacer :
-#   :message        Le message finalisé
-#   :destinataire   Le destinataire
-# 
-def template
-  @template ||= mail.code_template_mail
+  return mail.assemble_code_final(recipient)
 end
 
 # --- Predicate Methods ---

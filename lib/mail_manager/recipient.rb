@@ -139,6 +139,10 @@ end #/<< self
     :TRUE == @isfemme ||= true_or_false(sexe == 'F')
   end
 
+  def homme?
+    :TRUE == @ishomme ||= true_or_false(not(femme?))
+  end
+
 private
 
 

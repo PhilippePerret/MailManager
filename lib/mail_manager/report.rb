@@ -32,7 +32,7 @@ class Report
     # 
     # Affichage des erreurs s'il y en a
     # 
-    unless @errors.empty?
+    if errors?
       puts "ERRORS".rouge
       puts "------".rouge
       @errors.each do |derr|
@@ -47,13 +47,13 @@ class Report
     # Message de conclusion (succès ou échec ou les deux)
     # 
     puts "\n"
-    if @errors.count == 0
-      puts "Mailing successfull. Mails sent: #{@success.count}.".vert
-    elsif @success.count == 0
-      puts "Mailing fails… Zero mails sent…".rouge
+    if nombre_erreurs == 0
+      puts "Mailing successfull. Mails sent: #{nombre_erreurs}.".vert
+    elsif nombre_success == 0
+      puts "Mailing fails… Zero mails sent… (failures: #{nombre_erreurs})".rouge
     else
       # - Rapport mitigé -
-      puts "Mails sent: #{@success.count} | Failures: #{@errors.count} ".orange
+      puts "Mails sent: #{nombre_success} | Failures: #{nombre_erreurs} ".orange
     end
     # 
     # Message indiquant comment traiter les mails échoués
@@ -68,18 +68,46 @@ class Report
   end
 
 
-  def add_failure(recipient, err)
+  def add_failure(recipient, source_file, err)
     @errors << {recipient: recipient, error: err, time: Time.now}
-  end
-  def add_success(recipient)
-    @success << {recipient: recipient, time: Time.now}
+    log("# Problème avec : #{recipient.mail} : #{err.message}")
   end
 
+  def add_success(recipient, source_file)
+    @success << {recipient: recipient, time: Time.now}
+    log("Envoi à #{recipient.mail} du mail #{source_file.subject}")
+  end
+
+  # --- Methodes de comptes ---
+
+  def nombre_erreurs 
+    @nombre_erreurs ||= @errors.count
+  end
+
+  def nombre_success 
+    @nombre_success ||= @success.count
+  end
 
   # --- Predicate Methods ---
 
   def errors?
-    @errors.count > 0
+    nombre_erreurs > 0
+  end
+
+  # --- Log Methods ---
+
+  def log(msg)
+    @reffile ||= File.open(logfile,'a')
+    @reffile.puts "--- #{Time.now.strftime('%H:%M:%S')} #{msg}"
+  end
+
+  def open_log_file
+    File.delete(logfile) if File.exist?(logfile)
+    `open "#{logfile}"`
+  end
+
+  def logfile
+    @logfile ||= File.join(TMP_FOLDER,'envoi.log')
   end
 end #/class Report
 end #/module MailManage

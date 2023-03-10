@@ -21,18 +21,57 @@ def initialize(source)
   @source = source
 end
 
-# @note
-#   Seules les propriétés :destinataire et :message ne sont pas
-#   remplacées, car elles dépendent du reste.
-def code_template_mail
-  TEMPLATE % {
-    message_id:   message_id,
-    sender:       source.sender[:full],
-    boundary:     boundary,
-    subject:      subject,
+# @param [MailManager::Message] message Instance du message du fichier source
+# @param [MailManager::Recipient] recipient Destinataire du message
+def assemble_code_final(recipient)
+  # 
+  # Message initial
+  # 
+  body = source.message.dup
+  # 
+  # Finaliser le message pour le destinataire
+  # 
+  if body.match?(/\%\{/)
+    data_template = recipient.as_hash.merge(FEMININES[recipient.sexe])
+    begin
+      # body = body.gsub(/\%\{(.+?)\}/) do
+      #   key = $1.freeze
+      #   if data_template.key?(key)
+      #     data_template[key]
+      #   else
+      #     reporter.log("-- Problème %{#{key}} inconnu")
+      #     "%{#{key}}"
+      #   end
+      # end
+      body = body % data_template
+    rescue Exception => e
+      puts "Problème avec un mail : #{e.message}".rouge
+      puts "body = #{body[0..200].inspect}"
+      puts "data_template = #{data_template.inspect}"
+      exit 100
+    end
+  end
+
+  # 
+  # Encoder et découper le message
+  # 
+  body = [body].pack("M").strip
+
+  # 
+  # Assemblage du code final
+  # 
+  cmail = TEMPLATE % {
+    message_id:     message_id,
+    sender:         source.sender[:full],
+    boundary:       boundary,
+    subject:        subject,
     universal_identifier: universal_identifier,
-    date_mail: date_mail,
+    date_mail:      date_mail,
+    message:        body,
+    destinataire:   recipient.as_to
   }
+
+  return cmail
 end
 
 # --- Données propres au mail ---
@@ -74,7 +113,7 @@ X-Apple-Windows-Friendly: 1
 Date: %{date_mail}
 Message-Id: <%{message_id}>
 X-Uniform-Type-Identifier: com.phil.mail-draft
-To: %%{destinataire}
+To: %{destinataire}
 
 
 --%{boundary}
@@ -82,7 +121,7 @@ Content-Transfer-Encoding: quoted-printable
 Content-Type: text/html;
   charset=utf-8
 
-%%{message}
+%{message}
 --%{boundary}--
 EML
 

@@ -17,8 +17,9 @@ Le fichier `path/to/mail.md` qui définit toutes les données doit être [correc
 ~~~txt
 -s/--simulation 		Pour faire simplement une simulation d'envoi
 
--e/--mail_errors		Pour procéder au dernier envoi avec les mails qui ont 
-										échoué.
+-e/--mail_errors		Pour re-procéder au dernier envoi en utilisant les mails qui ont 
+										échoué lors de ce dernier envoi (les mails ont été mis de côté et
+										le problème doit avoir été résolu).
 ~~~
 
 
@@ -36,6 +37,10 @@ Il doit impérativement :
 * être au format markdown
 * définir ses métadonnées
 * définir le texte du mail
+
+### Définition du texte du mail
+
+C'est un texte au format markdown, donc utilisant des marques de formatage simples comme l'étoile pour les italiques ou la double étoile pour le gras. Les titres sont précédés par des dièses.
 
 ### Définition des variables
 
