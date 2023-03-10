@@ -20,7 +20,6 @@ class SenderMailTest < Minitest::Test
     @mail ||= MailManager::Mail.new(source_file)
   end
 
-
   def test_method_send_respond
     assert_respond_to sender, :send
   end
@@ -33,7 +32,7 @@ class SenderMailTest < Minitest::Test
     assert_respond_to sender, :code_mail_final
     # code = sender.code_mail_final(source_file.destinataires.first)
     # puts "code:\n#{code}".bleu
-    sender.send
+    sender.send # attention, ça envoie le mail chaque fois
     # essai = File.open('./test/essai.eml','wb')
     # essai.puts code
   end

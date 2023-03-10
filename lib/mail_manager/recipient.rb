@@ -5,6 +5,7 @@
   Gestion des destinataires
 
 =end
+require 'csv'
 module MailManager
 class Recipient
 
@@ -17,21 +18,50 @@ def destinataires_from(str, **options)
   if File.exist?(str)
     # <= Un fichier
     # => C'est une liste de destinataires
-
+    load(str)
+  elsif str.match?(/^\[(.+)\]$/)
+    traite_as_recipients_list(eval(str))
   elsif str.match?('@')
     # <= Contient l'arobase
-    # => C'est une adresse mail
+    # => C'est une adresse mail ou liste
     [new(str)]
   end
 end
 
+
+# Méthode qui charge une liste de destinataires à partir d'un
+# fichier CSV ou YAML
+# 
+# @note
+#   L'existence doit être vérifiée avant.
+# 
+def load(fpath)
+  case File.extname(fpath).downcase
+  when '.csv'
+    options = {headers:true, col_sep:','}
+    CSV.read(fpath, **options)
+  when '.yaml'
+    YAML.load_file(fpath)
+  else
+    raise BadListingError, ERRORS['listing']['bad_extension'] % File.extname(fpath).downcase
+  end.map do |ddest|
+    new(ddest)
+  end
+end
+
+# Traitement d'une liste de destinataires définis en dur dans
+# l'entête du mail
+def traite_as_recipients_list(liste)
+  liste.map { |dst| new(dst) }
+end
+  
 end #/<< self
 ###################       INSTANCE      ###################
   
   attr_reader :mail
 
 
-  BASE_REG_MAIL = /((?:[a-zA-Z0-9._\-]+)@(?:[^ .]+)\..{2,10})/
+  BASE_REG_MAIL = /((?:[a-zA-Z0-9._\-]+)@(?:[^ .,]+)\.[a-zA-Z]{2,10})/
   REG_MAIL = /^#{BASE_REG_MAIL}$/
   REG_MAIL_AND_PATRO = /^(.+?)<#{BASE_REG_MAIL}>$/
 
@@ -41,6 +71,14 @@ end #/<< self
   #   - un string : une ligne de donnée d'un fichier csv
   #   - un hash : les données :mail, :patronyme, etc.
   def initialize(designation)
+    @data       = {}
+    @fonction   = nil
+    @mail       = nil
+    @sexe       = nil
+    @patronyme  = nil
+    # 
+    # Étude de la désignation pour prendre les données
+    # 
     case designation
     when REG_MAIL_AND_PATRO
       dre = designation.match(REG_MAIL_AND_PATRO)
@@ -49,13 +87,28 @@ end #/<< self
     when REG_MAIL
       @mail       = designation
       @patronyme  = nil
+    when BASE_REG_MAIL
+      # - La donnée contient un mail, mais pas seulement, ni 
+      #   seulement un patronyme. En fait, le recipient est 
+      #   defini à l'aide d'un triptyque "sexe,mail,patronyme" 
+      #   dans n'importe quel ordre -
+      traite_as_triolet(designation)
     when String
       raise ERRORS['mail']['invalid'] % designation
     when Hash
       dispatch_data(designation)
-    end  
-  end
+      @mail || raise(BadListingError, ERRORS['listing']['missing_mail'] % designation.inspect)
+      @sexe || raise(BadListingError, ERRORS['listing']['missing_sexe'] % designation.inspect)
+    when CSV::Row
+      dispatch_data(designation.to_hash)
+      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['bad_header'])
+    else
+      raise "Je ne sais pas comment traiter une désignation de classe #{designation.class.inspect}."
+    end
 
+    @mail || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % designation.inspect)
+  end
+  # /instanciate
 
   # @return [String] L'adresse à écrire dans le mail
   def as_to
@@ -64,17 +117,57 @@ end #/<< self
     return str
   end
 
-  def patronyme
-    @patronyme ||= nil
+  def as_hash
+    @data.merge({
+      mail:       mail,
+      patronyme:  patronyme,
+      sexe:       sexe,
+      fonction:   fonction
+    })
   end
 
+  # --- Données du destinataire ---
+
+  def patronyme ; @patronyme  end
+  def sexe      ; @sexe       || 'H' end
+  def fonction  ; @fonction   end
+
+
+  # --- Predicate Methods ---
+
+  def femme?
+    :TRUE == @isfemme ||= true_or_false(sexe == 'F')
+  end
 
 private
 
-  def dispatch_data(data)
-    data.each do |k, v|
-      self.instance_variable_set("@#{k}", v)
+
+  def dispatch_data(drec)
+    drec.each do |k, v|
+      k = k.to_s.downcase
+      self.instance_variable_set("@#{k.to_s.downcase}", v)
+      @data.merge!(k => v)
     end
   end
+
+
+  # Traite la donnée donnée à l'instanciation comme un "triolet",
+  # c'est-à-dire un String qui peut définir le patronyme, le mail et
+  # le sexe, mais dans n'importe quel ordre.
+  # La seule contrainte : que les données soient séparées par des
+  # virgules
+  def traite_as_triolet(str)
+    str.split(',').each do |seg|
+      seg = seg.strip
+      if seg.match?(REG_MAIL)
+        @mail = seg
+      elsif seg == 'H' || seg == 'F'
+        @sexe = seg
+      else
+        @patronyme = seg
+      end
+    end
+  end
+
 end #/class Recipient
 end #/module MailManager

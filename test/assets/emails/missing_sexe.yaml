@@ -1,0 +1,15 @@
+---
+- Patronyme: Première
+  mail: premier.mail@chez.elle
+
+- patronyme: Deuxième
+  mail: deux@chez.lui
+
+- patronyme: Troisième
+  fonction: Directeur
+  mail: directeur@chez.lui
+  sexe: H
+
+- patronyme: Quatrième
+  mail: quatremail@chez.eux
+  sexe: F

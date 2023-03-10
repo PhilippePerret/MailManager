@@ -90,13 +90,15 @@ def dispatch_metadata(code)
     line = line.strip
     next if line.empty? || line.start_with?('#')
     sp = line.split('=')
-    key = sp.shift.strip.downcase
+    key_ini = sp.shift.strip
+    key = key_ini.downcase
     val = sp.join('=').strip
     val = val.sub(/^"/,'').sub(/"$/,'')
     if @metadata.key?(key)
       @metadata.merge!(key => val)
     else
-      @variables.merge!(key => val)
+      k = key_ini.start_with?('IMG') ? key_ini : key
+      @variables.merge!(k => val)
     end
   end
   # puts "metadata = #{metadata.inspect}"

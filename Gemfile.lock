@@ -3,6 +3,7 @@ PATH
   specs:
     mail-manager (0.0.1)
       kramdown
+      securerandom
 
 GEM
   remote: https://rubygems.org/
@@ -14,6 +15,7 @@ GEM
       minitest (~> 5)
     rake (12.3.3)
     rexml (3.2.5)
+    securerandom (0.2.2)
 
 PLATFORMS
   ruby
@@ -24,6 +26,7 @@ DEPENDENCIES
   minitest (~> 5.0)
   minitest-color
   rake (~> 12.0)
+  securerandom
 
 BUNDLED WITH
    2.1.4

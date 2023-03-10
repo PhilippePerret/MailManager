@@ -15,7 +15,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'kramdown'
   s.add_dependency 'securerandom'
-  s.add_dependency 'net/smtp'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'minitest-color'
 

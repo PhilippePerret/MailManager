@@ -10,3 +10,10 @@ source_file:
   missing_subject: 'il manque le sujet du message (Subject = )'
 mail:
   invalid: "Le mail '%s' est invalide"
+listing:
+  bad_extension: "Le fichier des adresses doit être un fichier .csv ou .yaml (il porte l'extension %s)"
+  bad_header: "L'entête du fichier CSV devrait être défini et contenir au moins 'Mail', 'Patronyme' et 'Sexe'."
+  missing_mail: 'La données "mail" est absolument requise, pour les listings (avec %s).'
+  missing_sexe: "La données 'sexe' (H ou F) est absolument requise, pour les listings (avec %s)." 
+recipient:
+  require_mail: "Le mail est absolument requis, pour définir un destinataire (dans %)"

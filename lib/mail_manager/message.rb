@@ -16,6 +16,7 @@ class Message
 
   def initialize(raw_code, **options)
     @raw_code   = raw_code
+    # puts "options : #{options.inspect}".jaune
     @variables  = options.delete(:variables) || {}
     @options    = options
   end
@@ -48,7 +49,8 @@ class Message
 
   def traited_code
     @traited_code ||= begin
-      code_html = kramdown(raw_code).strip
+      code      = escape_variables_recipients(raw_code)
+      code_html = kramdown(code).strip
       code_html = traite_table_in_kramdown_code(code_html)
       code_html = rowize_kramdown_code(code_html)
       @message  = remplace_variables_in(code_html)
@@ -69,6 +71,12 @@ class Message
   end
 
 # --- Méthodes de traitement du code brut ---
+
+# Traite toutes les variables %{…} dans le code pour qu'elles
+# ne soit pas interprétées tout de suite
+def escape_variables_recipients(codebrut)
+  codebrut
+end
 
 def kramdown(code_md)
   Kramdown::Document.new(code_md).to_html
