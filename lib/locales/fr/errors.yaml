@@ -15,6 +15,7 @@ listing:
   bad_header: "L'entête du fichier CSV devrait être défini et contenir au moins 'Mail', 'Patronyme' et 'Sexe'."
   missing_mail: 'La données "mail" est absolument requise, pour les listings (avec %s).'
   missing_sexe: "La données 'sexe' (H ou F) est absolument requise, pour les listings (avec %s)." 
+  missing_value: "Il manque la donnée Mail ou la donnée Sexe dans la ligne %s…"
 recipient:
   require_mail: "Le mail est absolument requis, pour définir un destinataire (dans %)"
 no_mails_errors_file: 'Aucun fichier d’erreur de mail n’a été trouvé…'

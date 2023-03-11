@@ -123,7 +123,7 @@ def send
   # Ouverture des messages simulés
   # 
   if simulation?
-    if Q.yes?('Dois-je ouvrir les messages masculins/féminins ?')
+    if Q.yes?('Dois-je ouvrir les messages masculins/féminins ?'.jaune)
       `open "#{mail_femme_path}"` if File.exist?(mail_femme_path)
       `open "#{mail_homme_path}"` if File.exist?(mail_homme_path)
     end

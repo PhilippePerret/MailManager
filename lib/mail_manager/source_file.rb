@@ -95,13 +95,16 @@ def dispatch_metadata(code)
     val = sp.join('=').strip
     val = val.sub(/^"/,'').sub(/"$/,'')
     if @metadata.key?(key)
+      # - Une métadonnée connue -
       @metadata.merge!(key => val)
+    elsif key_ini.start_with?('IMG')
+      # - Une image - 
+      ImageManager.traite_metadata(key_ini, val)
     else
-      k = key_ini.start_with?('IMG') ? key_ini : key
-      @variables.merge!(k => val)
+      # - une variable quelconque -
+      @variables.merge!(key_ini => val)
     end
   end
-  # puts "metadata = #{metadata.inspect}"
 end
 
 end #/class SourceFile

@@ -63,6 +63,7 @@ class Message
       code_html = kramdown(code).strip
       code_html = traite_table_in_kramdown_code(code_html)
       code_html = rowize_kramdown_code(code_html)
+      code_html = remplace_images_in(code_html)
       @message  = remplace_variables_in(code_html)
     end
   end
@@ -97,23 +98,58 @@ end
 # Pour qu'elles puissent être traitées par la méthode suivante,
 # il faut les mettre dans des "<p>…</p>" et il faut aussi traiter
 # les codes intérieurs qui peuvent définir des alignements
+# 
+# @param [HTMLString] code_html Code produit par kramdown
+# 
 def traite_table_in_kramdown_code(code_html)
   return code_html if not(code_html.match?('<table>'))
   code_html = code_html
     .gsub(/<table>/, '<p><table width="100%%">')
     .gsub(/<\/table>/, '</table></p>')
+
+  # On procède table par table pour compter le nombre de cellules
+  # et ajouter, pour windows, la taille de chacune. Sinon, la première
+  # et la dernière se règlent en fonction du contenu et les autres
+  # prennent toutes la place.
   # 
-  # Boucle sur le contenu de toutes les cellules
+  code_html = code_html.gsub(/<table(.+?)<\/table>/m) do
+    '<table' + traite_colonnes_in_table($1.freeze) + '</table>'
+  end
+end
+
+def traite_colonnes_in_table(code_table)
   # 
-  code_html = code_html.gsub(/<td>(.+?)<\/td>/) do
+  # Nombre de colonnes
+  # 
+  decin = code_table.index('<tr')
+  decou = code_table.index('</tr>', decin)
+  range = code_table[decin..decou]
+  nombre_colonnes = range.split('</td>').count - 1
+
+  # 
+  # Boucle sur le contenu de toutes les cellules de la table
+  # 
+  code_table = code_table.gsub(/<td>(.+?)<\/td>/) do
     content = $1.freeze
     if content.match?('::')
       align, real_content = content.split('::')
-      "<td style=\"text-align:#{align};\">#{real_content}</td>"
+      "<td width=\"__TD_WIDTH__\" style=\"text-align:#{align};\">#{real_content}</td>"
     else
-      "<td>#{content}</td>"
+      "<td width=\"__TD_WIDTH__\">#{content}</td>"
     end
   end
+  # 
+  # Taille de chaque colonne
+  # 
+  td_width = "#{100 / nombre_colonnes}%%"
+  # 
+  # On met la taille de chaque colonne
+  # 
+  code_table = code_table.gsub(/__TD_WIDTH__/, td_width)
+  # 
+  # Pour remplacer le code
+  # 
+  return code_table
 end
 
 # Méthode qui reçoit le code HTML produit par kramdown et
@@ -132,21 +168,18 @@ end
 # 
 def remplace_variables_in(code_html)
   variables.each do |key, val|
-    if key.start_with?('IMG') && not(key.end_with?('-alt'))
-      val = traite_variable_as_image(key, val)
-    end
     code_html = code_html.gsub(/#{key}/, val)
   end
   return code_html
 end
 
-def traite_variable_as_image(key, img_path)
-  legende = if variables.key?("#{key}-alt")
-    metadata["#{key}-alt"]
-  else
-    File.basename(img_path)
+# Remplace toutes les images définies par une variables dans le
+# code HTML
+def remplace_images_in(code_html)
+  ImageManager.each do |image|
+    code_html = code_html.gsub(/#{image.key}/, image.to_html)
   end
-  ImageManager.code_image(img_path, legende)
+  return code_html
 end
 
 # --- CONSTANTES ---

@@ -97,16 +97,19 @@ end #/<< self
       raise ERRORS['mail']['invalid'] % designation
     when Hash
       dispatch_data(designation)
-      @mail || raise(BadListingError, ERRORS['listing']['missing_mail'] % designation.inspect)
-      @sexe || raise(BadListingError, ERRORS['listing']['missing_sexe'] % designation.inspect)
+      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['missing_value'] % designation.inspect)
     when CSV::Row
       dispatch_data(designation.to_hash)
-      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['bad_header'])
+      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['missing_value'] % designation.inspect)
     else
       raise "Je ne sais pas comment traiter une désignation de classe #{designation.class.inspect}."
     end
-
+    #
+    # Le mail doit toujours exister
+    # 
     @mail || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % designation.inspect)
+    # - Toujours le passer en minuscules -
+    @mail = @mail.strip.downcase
   end
   # /instanciate
 
@@ -134,11 +137,15 @@ end #/<< self
   def sexe      ; @sexe       || 'H' end
   def fonction  ; @fonction   end
   def prenom
-    @firstname ||= get_prenom_from_patronyme    
+    @firstname ||= @prenom ||= begin
+      get_prenom_from_patronyme if @patronyme
+    end
   end
   def nom
     @nom ||= begin
-      @lastname ||= get_nom_from_patronyme
+      @lastname ||= @nom ||= begin
+        get_nom_from_patronyme if @patronyme
+      end
     end    
   end
 
@@ -159,7 +166,7 @@ private
   def dispatch_data(drec)
     drec.each do |k, v|
       k = k.to_s.downcase
-      self.instance_variable_set("@#{k.to_s.downcase}", v)
+      self.instance_variable_set("@#{k}", v.strip)
       @data.merge!(k => v)
     end
   end

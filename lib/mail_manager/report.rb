@@ -96,13 +96,16 @@ class Report
 
   # --- Log Methods ---
 
-  def log(msg)
-    @reffile ||= File.open(logfile,'a')
-    @reffile.puts "--- #{Time.now.strftime('%H:%M:%S')} #{msg}"
+  def log(msg, no_header = false)
+    msg = "--- #{Time.now.strftime('%H:%M:%S')} #{msg}" unless no_header
+    File.open(logfile,'a') do |f|
+      f.puts msg
+    end
   end
 
   def open_log_file
     File.delete(logfile) if File.exist?(logfile)
+    log("--- DÉBUT D'ENVOI : #{Time.now} ---", true)
     `open "#{logfile}"`
   end
 

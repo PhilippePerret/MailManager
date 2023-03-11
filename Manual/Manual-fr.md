@@ -91,6 +91,25 @@ Ci-dessus, la variable `IMG1` sera remplacée par le code en dur de l’image de
 
 La variable `IMG1-alt` permet de définir la légende par défaut mais n’est pas obligatoire.
 
+### Insérer une table
+
+On le fait comme dans kramdown, par exemple :
+
+~~~markdown
+| premier | deuxième | troisième |
+~~~
+
+Par défaut, la table prendra toute la largeur de la “feuille” et chaque colonne aura une largeur égale, définie en fonction du nombre de colonnes.
+
+On peut définir l’alignement des contenus avec :
+
+~~~markdown
+| premier | center::deuxième | right::troisième |
+~~~
+
+Ci-dessus, le mot “deuxième” sera centré et le mot “troisième” sera aligné à droite.
+
+
 
 #### Définition des variables destinataire
 
