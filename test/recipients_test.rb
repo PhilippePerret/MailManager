@@ -50,6 +50,24 @@ class RecipientClassTest < Minitest::Test
     refute first_dst.fonction
   end
 
+  # --- Gestion du nom,prénom,patronyme ---
+
+  def test_decomposition_patronyme
+    [
+      ['Phil <phil@chez.lui>', 'phil@chez.lui', 'Phil', 'Phil', ''],
+      ['Marion MICHEL <marion@chez.elle>', 'marion@chez.elle', 'Marion MICHEL', 'Marion', 'MICHEL'],
+      ['Marc-Antoine LARI BOISSIÈRE <malb@chez.eux>','malb@chez.eux','Marc-Antoine LARI BOISSIÈRE', 'Marc-Antoine','LARI BOISSIÈRE'],
+      ['Marc Olivier BOISSIÈRE <marco-livier@chez.eux>','marco-livier@chez.eux','Marc Olivier BOISSIÈRE', 'Marc Olivier','BOISSIÈRE'],
+      ['Marc Olivier LARGI BOISSIÈRE <marco-livier@chez.eux>','marco-livier@chez.eux','Marc Olivier LARGI BOISSIÈRE', 'Marc Olivier','LARGI BOISSIÈRE'],
+    ].each do |donnee, mail, patronyme, prenom, nom|
+      re = MailManager::Recipient.new(donnee)
+      assert_equal(mail, re.mail, "Le mail devrait être #{mail.inspect}. Il vaut #{re.mail.inspect}…")
+      assert_equal(patronyme, re.patronyme, "Le patronyme devrait être #{patronyme.inspect}. Il vaut #{re.patronyme.inspect}…")
+      assert_equal(prenom, re.prenom, "Le prenom devrait être #{prenom.inspect}. Il vaut #{re.prenom.inspect}…")
+      assert_equal(nom, re.nom, "Le nom devrait être #{nom.inspect}. Il vaut #{re.nom.inspect}…")
+    end
+  end
+
   # --- Gestion des erreurs ---
 
   def test_load_with_bad_format

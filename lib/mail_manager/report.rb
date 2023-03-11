@@ -48,7 +48,7 @@ class Report
     # 
     puts "\n"
     if nombre_erreurs == 0
-      puts "Mailing successfull. Mails sent: #{nombre_erreurs}.".vert
+      puts "Mailing successfull. Mails sent: #{nombre_success}.".vert
     elsif nombre_success == 0
       puts "Mailing fails… Zero mails sent… (failures: #{nombre_erreurs})".rouge
     else

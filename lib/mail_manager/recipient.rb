@@ -120,6 +120,8 @@ end #/<< self
   def as_hash
     @data.merge({
       mail:       mail,
+      prenom:     prenom,
+      nom:        nom,
       patronyme:  patronyme,
       sexe:       sexe,
       fonction:   fonction
@@ -128,9 +130,17 @@ end #/<< self
 
   # --- Données du destinataire ---
 
-  def patronyme ; @patronyme  end
+  def patronyme ; @patronyme  || "#{prenom} #{nom}".strip end
   def sexe      ; @sexe       || 'H' end
   def fonction  ; @fonction   end
+  def prenom
+    @firstname ||= get_prenom_from_patronyme    
+  end
+  def nom
+    @nom ||= begin
+      @lastname ||= get_nom_from_patronyme
+    end    
+  end
 
 
   # --- Predicate Methods ---
@@ -170,6 +180,36 @@ private
       else
         @patronyme = seg
       end
+    end
+  end
+
+
+  def get_nom_from_patronyme
+    return nil if patronyme.nil?
+    decompose_patronyme
+    @nom
+  end
+  def get_prenom_from_patronyme
+    return nil if patronyme.nil?
+    decompose_patronyme
+    @prenom
+  end
+  def decompose_patronyme
+    segs = patronyme.split(' ')
+    if segs.count == 2
+      @prenom, @nom = segs
+    else
+      sprenom = []
+      snom    = []
+      segs.each do |seg|
+        if seg.match?(/[^A-ZÀÄÂÉÈÊÎÏÔÇÙ\-]/)
+          sprenom << seg
+        else
+          snom << seg
+        end
+      end
+      @prenom = sprenom.join(' ')
+      @nom    = snom.join(' ')
     end
   end
 
