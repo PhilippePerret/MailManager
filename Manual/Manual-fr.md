@@ -17,9 +17,19 @@ Le fichier `path/to/mail.md` qui définit toutes les données doit être [correc
 ~~~txt
 -s/--simulation 		Pour faire simplement une simulation d'envoi
 
+-t/--test 					Pour faire un envoi seulement à des destinataires test (qui
+										vont pouvoir vérifier l'aspect du message. Ils doivent être
+										définis, pour le moment, dans TEST_RECIPIENTS dans constants.rb
+
+-a/--admin 					Pour envoyer seulement à la personne définie comme l'administrateur
+										dans constants.rb (ADMINISTRATOR)
+
 -e/--mail_errors		Pour re-procéder au dernier envoi en utilisant les mails qui ont 
 										échoué lors de ce dernier envoi (les mails ont été mis de côté et
 										le problème doit avoir été résolu).
+
+-d/--no_delay 			Pour ne pas temporiser les envois (1 seconde entre simplement)
+
 ~~~
 
 

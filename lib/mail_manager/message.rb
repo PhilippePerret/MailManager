@@ -37,19 +37,73 @@ class Message
   # 
   # @return [HTMLString] Le code complet du message en HTML
   # 
+  # def assemblage
+  #   <<~HTML
+  #   <!DOCTYPE html>
+  #   <html lang="fr">
+  #   <head>
+  #   #{HEAD}
+  #   <style type="text/css">
+  #   #{head_style}
+  #   </style>
+  #   </head>
+  #   <body>
+  #   #{tested_code}
+  #   </body>
+  #   </html>
+  #   HTML
+  # end
   def assemblage
     <<~HTML
     <!DOCTYPE html>
     <html lang="fr">
+    <head>
     #{HEAD}
+    <style type="text/css">
+    #{head_style}
+    </style>
+    </head>
     <body>
-    <table style="#{TABLE_STYLE}">
+    <table id="main">
     #{html_rows}
     </table>
     </body>
     </html>
     HTML
   end
+
+
+  # Pour tester du code brut (rien ajouté au body à part ça)
+  def tested_code
+    # 
+    # DEV - POUR FAIRE DES ESSAIS
+    # 
+    # Marche, avec <table width="400">
+    return <<~HTML
+    <table id="main">
+      <tr><td>#{LOREM_1}</td></tr>
+    </table>
+    HTML
+  end
+
+  def head_style
+    <<~CSS
+    <!--
+    table#main {
+      width:800px;
+    }
+    table#main tr td {
+      padding: 0.5em 0;
+      text-align:justify;
+    }
+    -->
+    CSS
+  end
+
+  # def head_style
+  #   "table tr td {padding: 0.5em 0;}"
+  # end
+
 
   # @return [HTMLString] les rangées de la table pour le mail
   def html_rows
@@ -61,11 +115,19 @@ class Message
     @traited_code ||= begin
       code      = escape_variables_recipients(raw_code)
       code_html = kramdown(code).strip
+      @plain_text = code_html.dup
       code_html = traite_table_in_kramdown_code(code_html)
       code_html = rowize_kramdown_code(code_html)
       code_html = remplace_images_in(code_html)
       @message  = remplace_variables_in(code_html)
     end
+  end
+
+
+  def to_plain 
+    @plain_text = remplace_variables_in(raw_code.dup)
+    @plain_text = remplace_images_with_alt(@plain_text)
+    return @plain_text
   end
 
   # Méthode qui définit la constante TR_IN pour création des 
@@ -181,6 +243,12 @@ def remplace_images_in(code_html)
   end
   return code_html
 end
+def remplace_images_with_alt(plain_code)
+  ImageManager.each do |image|
+    plain_code = plain_code.gsub(/#{image.key}/, "[image #{image.alt}]")
+  end
+  return plain_code
+end
 
 # --- CONSTANTES ---
 
@@ -214,18 +282,39 @@ CSS
 # TR_IN est défini dynamiquement plus haut
 TR_OUT  = "</td></tr>".freeze
 
+
+#    body {max-width:840px;}
 HEAD = <<~HTML
-<head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contenu du mail</title>
-  <style type="text/css">
-    body {max-width:840px;}
-    table tr td {padding: 0.5em 0;}
-  </style>
-</head>
-
 HTML
 
+LOREM_1 = <<-TEXT.strip
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam nec elit vel sapien interdum aliquet. Donec tincidunt risus lectus, et ultrices augue ornare vitae. Phasellus tempus augue ac finibus convallis. Donec sit amet urna quis mauris suscipit auctor. Morbi sed orci ut tortor rutrum cursus. Integer sagittis pharetra felis sagittis sagittis. Praesent ac risus ut metus malesuada lacinia vel eu enim. Aenean pharetra dignissim bibendum. Phasellus ac lectus gravida, sagittis justo non, congue purus. Nullam vitae justo neque. Sed blandit id arcu et faucibus. Aliquam lacinia metus at faucibus dictum. In id feugiat odio. Sed finibus eu urna id venenatis. Morbi non dolor arcu. Sed ornare mi urna, ut vulputate tellus tristique ac.
+TEXT
+LOREM_2 = <<-TEXT.strip
+Aliquam et blandit elit. Mauris porta vulputate leo, sed maximus ante ultrices sed. Duis facilisis varius auctor. Sed vitae dapibus lacus, eget porta massa. Integer in lacus sit amet purus vehicula luctus quis non lacus. Fusce euismod ipsum at sollicitudin rutrum. Aliquam posuere quis diam sit amet malesuada. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Integer faucibus, odio a mattis cursus, metus sapien tincidunt quam, at scelerisque nibh nibh vel libero. In dapibus sem id orci sagittis gravida quis quis risus. Fusce vitae tortor in lectus congue facilisis ac id velit.
+TEXT
+LOREM_3 = <<-TEXT.strip
+Curabitur mollis augue commodo, elementum libero vitae, tincidunt risus. Morbi aliquet rhoncus ligula, id aliquam dui commodo sit amet. Nunc id justo hendrerit, venenatis sem ac, tempor arcu. Praesent tristique velit turpis, sit amet molestie lectus elementum sit amet. Suspendisse ac dolor eros. Ut vel leo feugiat, rhoncus nisi a, semper magna. Sed tristique condimentum erat ut maximus. Ut ornare lectus vitae suscipit elementum. In pulvinar quis neque a mollis. Vestibulum vel nunc finibus, sodales ante in, fermentum elit. Proin faucibus quis est ac varius. Morbi laoreet felis sed nibh luctus scelerisque. Curabitur dignissim, ipsum id mollis dapibus, enim nunc auctor risus, mattis varius elit tellus sed mauris. Maecenas tincidunt eleifend purus, eget auctor libero.
+TEXT
+LOREM_4 = <<-TEXT.strip
+Nullam eu ante nisi. Donec maximus lacus a neque congue aliquam. Proin sodales ex a odio placerat imperdiet. Integer commodo ligula nec tellus iaculis, ut auctor sem dictum. Vestibulum auctor, dolor vel viverra feugiat, massa augue convallis orci, sed ultrices nulla velit interdum sapien. Nulla aliquet eget quam eu maximus. Morbi non convallis diam, non imperdiet lorem.
+TEXT
+LOREM_5 = <<-TEXT.strip
+Aliquam enim nulla, condimentum id semper in, convallis vitae mi. Mauris aliquet viverra condimentum. Cras congue tellus sit amet mi gravida iaculis. Nullam iaculis ipsum sollicitudin est vulputate accumsan. Nunc in pellentesque odio. Nunc posuere hendrerit felis id condimentum. Ut sed luctus erat, a lacinia dui. Vivamus accumsan facilisis nulla eget condimentum. Donec libero nulla, dapibus quis eleifend eget, molestie vel neque. Vestibulum a urna eu eros tempor commodo. Vivamus urna ipsum, tincidunt in risus sed, vulputate sagittis velit. Donec quis vestibulum lorem, at euismod felis. Aenean tristique massa ac malesuada consequat. Aenean sagittis tempor nulla at eleifend. Integer sit amet ultricies augue, ut varius nulla. Vivamus cursus quam in turpis placerat, sed volutpat ex molestie.
+TEXT
+LOREM_5_PARAGRAPHES = <<-TEXT.strip
+#{LOREM_1}
+
+#{LOREM_2}
+
+#{LOREM_3}
+
+#{LOREM_4}
+
+#{LOREM_5}
+TEXT
 end #/class Message
 end #/module MailManager

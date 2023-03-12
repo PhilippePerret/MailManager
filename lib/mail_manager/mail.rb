@@ -28,26 +28,21 @@ def assemble_code_final(recipient)
   # Message initial
   # 
   body = source.message.dup
+  body_brut = source.message_plain_text.dup
+
   # 
   # Finaliser le message pour le destinataire
   # 
   if body.match?(/\%\{/)
     data_template = recipient.as_hash.merge(FEMININES[recipient.sexe])
     begin
-      # body = body.gsub(/\%\{(.+?)\}/) do
-      #   key = $1.freeze
-      #   if data_template.key?(key)
-      #     data_template[key]
-      #   else
-      #     reporter.log("-- Problème %{#{key}} inconnu")
-      #     "%{#{key}}"
-      #   end
-      # end
-      body = body % data_template
+      body      = body % data_template
+      body_brut = body_brut % data_template
     rescue Exception => e
       puts "Problème avec un mail : #{e.message}".rouge
       puts "body = #{body[0..200].inspect}"
       puts "data_template = #{data_template.inspect}"
+      puts e.backtrace.join("\n").orange
       exit 100
     end
   end
@@ -55,7 +50,9 @@ def assemble_code_final(recipient)
   # 
   # Encoder et découper le message
   # 
-  body = [body].pack("M").strip
+  body      = [body].pack("M").strip
+  body_brut = [body_brut].pack("M").strip
+
 
   # 
   # Assemblage du code final
@@ -68,6 +65,7 @@ def assemble_code_final(recipient)
     universal_identifier: universal_identifier,
     date_mail:      date_mail,
     message:        body,
+    message_brut:   body_brut,
     destinataire:   recipient.as_to
   }
 
@@ -100,8 +98,7 @@ end
 
 
 TEMPLATE = <<~EML
-Content-Type: multipart/related;
-  type="text/html";
+Content-Type: multipart/alternative;
   boundary="%{boundary}"
 Subject: %{subject}
 Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.120.41.1.1\))
@@ -115,6 +112,16 @@ Message-Id: <%{message_id}>
 X-Uniform-Type-Identifier: com.phil.mail-draft
 To: %{destinataire}
 
+--%{boundary}
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+%{message_brut}
+
+=20
+
+=20
 
 --%{boundary}
 Content-Transfer-Encoding: quoted-printable

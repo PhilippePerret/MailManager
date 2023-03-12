@@ -17,14 +17,17 @@ IMGbach-link = https://icare-editions.fr/publications/premier-prelude-de-bach
 LKbach = https://www.amazon.fr/dp/B0BW2QM8B1
 LKschum = https://www.amazon.fr/dp/B0BKS612TG
 LKbee = https://www.amazon.fr/dp/B0BKXXVLS1
+IMGcmd = /Users/philippeperret/Sites/Atelier_Icare/Icare_2020/img/Emojis/objets/toolbox/toolbox-very-small.png
 
 ---
 Bonjour %{patronyme},
 
-Je suis heureux (et fier) de vous annoncer la publication de ma troisième « analyse musicale passionnée ». Elle 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam nec elit vel sapien interdum aliquet. Donec tincidunt risus lectus, et ultrices augue ornare vitae. Phasellus tempus augue ac finibus convallis. Donec sit amet urna quis mauris suscipit auctor. Morbi sed orci ut tortor rutrum cursus. Integer sagittis pharetra felis sagittis sagittis. Praesent ac risus ut metus malesuada lacinia vel eu enim. Aenean pharetra dignissim bibendum. Phasellus ac lectus gravida, sagittis justo non, congue purus. Nullam vitae justo neque. Sed blandit id arcu et faucibus. Aliquam lacinia metus at faucibus dictum. In id feugiat odio. Sed finibus eu urna id venenatis. Morbi non dolor arcu. Sed ornare mi urna, ut vulputate tellus tristique ac.
+
+
 
 | IMGbach | IMGbee | IMGschum |
-| center::[Commander](LKbach) | center::[Commander](LKbee) | center::[Commander](LKschum) |
+| center::[IMGcmd](LKbach) | center::[IMGcmd](LKbee) | center::[IMGcmd](LKschum) |
 
 Phil
 

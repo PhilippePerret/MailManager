@@ -19,12 +19,22 @@ def initialize(path)
   data_valid_or_raise
 end
 
-def message
-  @message ||= begin
+def instance_mail_message
+  @instance_mail_message ||= begin
     options = {variables: variables}
-    MailManager::Message.new(raw_message, **options).to_html
+    MailManager::Message.new(raw_message, **options)
   end
 end
+
+def message
+  @message ||= begin
+    instance_mail_message.to_html
+  end
+end
+def message_plain_text
+  instance_mail_message.to_plain
+end
+
 def raw_message ; @raw_message  end
 def subject     ; @subject      ||= metadata['subject']  end
 def sender

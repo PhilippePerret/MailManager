@@ -12,7 +12,17 @@ module MailManager
   CLI.set_options_table({
     :s => :simulation,
     :e => :mail_errors, # pour renvoyer aux mails erronnés
+    :d => :no_delay,
+    :t => :test, # pour envoyer seulement à moi et marion
+    :a => :admin, # pour envoyer seulement à l'administrateur
   })
+
+  ADMINISTRATOR = {mail: 'philippe.perret@yahoo.fr', sexe:'H', prenom:'Phil', nom:'Perret', fonction:'Manager'}
+  TEST_RECIPIENTS = [
+    ADMINISTRATOR,
+    {mail: 'marion.michel31@free.fr', sexe:'F', prenom:'Marion', nom:'MICHEL', fonction:'Assistante'}    
+  ]
+
 
 FEMININES = {
   'F' => {

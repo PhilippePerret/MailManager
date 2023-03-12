@@ -37,6 +37,14 @@ def recipients
       else
         raise MailManagerError, ERRORS['no_mails_errors_file']
       end
+    elsif CLI.option(:admin)
+      [
+        MailManager::Recipient.new(ADMINISTRATOR)
+      ]
+    elsif CLI.option(:test)
+      TEST_RECIPIENTS.map do |ddest|
+        MailManager::Recipient.new(ddest)
+      end
     else
       source_file.destinataires
     end
@@ -143,11 +151,15 @@ end
 # @param [Integer] idx Indice du message (0-start)
 # @param [String] mail Adresse mail en attente d'être envoyé
 def temporiser(idx, mail)
-  secondes = delai_incompressible + rand(delai_compressible)
-  nieme = idx > 0 ? "#{idx + 1}e" : '1er'
-  while (secondes -= 1) > 0
-    STDOUT.write "\rAttente de #{secondes} secondes avant l'envoi du #{nieme} message sur #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
+  if CLI.option(:no_delay)
     sleep 1
+  else
+    secondes = delai_incompressible + rand(delai_compressible)
+    nieme = idx > 0 ? "#{idx + 1}e" : '1er'
+    while (secondes -= 1) > 0
+      STDOUT.write "\rAttente de #{secondes} secondes avant l'envoi du #{nieme} message sur #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
+      sleep 1
+    end
   end
 end
 def delai_incompressible
