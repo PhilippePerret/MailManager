@@ -165,9 +165,23 @@ private
 
   def dispatch_data(drec)
     drec.each do |k, v|
-      k = k.to_s.downcase
-      self.instance_variable_set("@#{k}", v.strip)
-      @data.merge!(k => v)
+      if k.nil?
+        puts "Une clé de la table des destinataires est nil, dans #{drec.inspect}.".rouge
+        puts "Il manque certainement une définition de colonne dans le fichier csv.".rouge
+        puts "Corriger le problème puis relancer le mailing.".orange
+        exit(100)
+      end
+      begin
+        k = k.to_s.downcase
+        v = v.strip unless v.nil?
+        self.instance_variable_set("@#{k}", v)
+        @data.merge!(k => v)
+      rescue Exception => e
+        puts "Problème avec k = #{k.inspect} et v = #{v.inspect}".rouge
+        puts "Donnée complète : #{drec.inspect}".rouge
+        puts "Erreur : #{e.message}".rouge
+        exit(100)
+      end
     end
   end
 

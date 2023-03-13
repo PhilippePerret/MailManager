@@ -34,8 +34,9 @@ FEMININES = {
     ette:   'ette', # sujet/suj{ette}
     eve:    'ève',   # bref/br{ève}
     ine:    'ine',    # certa{in}/ certaine
-    ne:     'ne',
     lle:    'lle',    # bel/be{lle}
+    madame: 'Madame',
+    ne:     'ne',
     rice:   'rice',   # correcteur/correct{rice}
     se:     'se',     # heureux/heureuse
     sse:    'sse',    # maitre/maitre{sse}
@@ -51,8 +52,9 @@ FEMININES = {
     ette:   'et',     # sujet/suj{ette}
     eve:    'ef',     # bref/br{ève}
     ine:    'in',     # certa{in}/ certaine
-    ne:     '',
     lle:    'l',      # bel/be{lle}
+    madame: 'Monsieur',
+    ne:     '',
     rice:   'eur',    # correcteur/correct{rice}
     se:     'x',      # heureux/heureuse
     sse:    '',       # maitre/maitre{sse}
