@@ -97,7 +97,12 @@ def send
     # 
     # Fabrication du code final en fonction du destinataire
     # 
-    code_final = code_mail_final(destinataire)
+    begin
+      code_final = code_mail_final(destinataire)
+    rescue Exception => e
+      reporter.add_failure(destinataire, source_file, e)      
+      next
+    end
     # 
     # Temporisation
     # 
