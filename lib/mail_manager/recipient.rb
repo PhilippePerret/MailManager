@@ -67,9 +67,15 @@ def load(fpath, **options)
 end
 
 # Traitement d'une liste de destinataires définis en dur dans
-# l'entête du mail
+# l'entête du mail ou de chemin d'accès 
 def traite_as_recipients_list(liste, **options)
-  liste.map { |dst| new(dst, **options) }
+  liste.map do |dst| 
+    if File.exist?(dst)
+      load(dst, **options)
+    else
+      new(dst, **options)
+    end
+  end.flatten
 end
   
 end #/<< self

@@ -78,9 +78,9 @@ def require_patronyme?
 end
 
 # @return true si le sexe est requis dans le message
-def require_sexe?
+def require_feminines?
   defined?(REG_FEMININES) || begin
-    Recipient.const_set('REG_FEMININES', /\%\{(#{FEMININES['F'].keys.join('|')})\}/)
+    SourceFile.const_set('REG_FEMININES', /\%\{(#{FEMININES['F'].keys.join('|')})\}/)
   end
   raw_message.match?(REG_FEMININES)
 end

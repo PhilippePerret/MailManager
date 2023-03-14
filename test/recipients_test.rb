@@ -50,6 +50,18 @@ class RecipientClassTest < Minitest::Test
     refute first_dst.fonction
   end
 
+  def test_list_of_recipient_files
+    # Ce test vérifie qu'on puisse donner une liste de chemin
+    # d'accès pour la définition des destinataires
+    # 
+    str = "[\"/Users/philippeperret/Programmes/Gems/mail_manager/test/assets/emails/ok.csv\",\"/Users/philippeperret/Programmes/Gems/mail_manager/test/assets/emails/ok.yaml\",\"LeMien,H,philippe.perret@yahoo.fr\"]"
+    dst = MailManager::Recipient.destinataires_from(str, Factory.source_file(name:'simple'))
+    expected = 4 + 4 + 1
+    actual   = dst.count
+    assert_equal(expected, actual, "La liste des destinataires devrait contenir #{expected} recipients, elle en contient #{actual}…")
+
+  end
+
   # --- Gestion du nom,prénom,patronyme ---
 
   def test_decomposition_patronyme
@@ -68,17 +80,20 @@ class RecipientClassTest < Minitest::Test
     end
   end
 
+
   # --- Gestion des erreurs ---
 
   def test_load_with_bad_format
+    # 
+    # TODO : IL y a des erreurs ici puisque le code a changé
     [
-      ['bad_header.csv', 'bad_header'],
+      ['bad_header.csv'   , 'bad_header'],
       ['bad_extension.txt', 'bad_extension', ['.txt']],
       ['missing_mail.yaml', 'missing_mail'],
       ['missing_sexe.yaml', 'missing_sexe'],
     ].each do |fname, err_id, err_args|
       listing_path = listing(fname)
-      err = assert_raises(MailManager::BadListingError) do
+      err = assert_raises(MailManager::InvalidDataError) do
         MailManager::Recipient.load(listing_path)
       end
       err_expected = ERRORS['listing'][err_id]
