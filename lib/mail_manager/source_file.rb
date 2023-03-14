@@ -49,15 +49,43 @@ def sender
   end
 end
 
+# --- Recipients & Exclusions Methods ---
 
 # @return [Array<MailManager::Recipient>] la liste de destinataires
 # même s'il n'y en a qu'un seul.
 def destinataires
-  @destinataires ||= MailManager::Recipient.destinataires_from(metadata['to'], **metadata)
+  @destinataires ||= MailManager::Recipient.destinataires_from(metadata['to'], self, **metadata)
+end
+
+def exclusions
+  @exclusions ||= begin
+    tbl = {}
+    if metadata['excludes']
+      options = {only_mail: true}.merge(metadata)
+      MailManager::Recipient.destinataires_from(metadata['excludes'], self, **options).each do |recipient|
+        tbl.merge!(recipient.mail => recipient)
+      end
+    end
+    tbl
+  end
+end
+
+# --- Predicate Methods ---
+
+# @return true si le patronyme est requis dans le message
+def require_patronyme?
+  raw_message.match?(/\%\{patronyme\}/i)
+end
+
+# @return true si le sexe est requis dans le message
+def require_sexe?
+  defined?(REG_FEMININES) || begin
+    Recipient.const_set('REG_FEMININES', /\%\{(#{FEMININES['F'].keys.join('|')})\}/)
+  end
+  raw_message.match?(REG_FEMININES)
 end
 
 # --- Méthodes de traitement du message ---
-
 
 # Méthode qui check que les métadonnées du fichier source soient bien
 # valides (doit contenir les données minimales.
@@ -95,13 +123,15 @@ def dispatch_metadata(code)
     'from'      => nil,
     'subject'   => nil,
     'ship_date' => nil,
+    'excludes'  => nil,
   }
   code.split("\n").each do |line|
     line = line.strip
     next if line.empty? || line.start_with?('#')
     sp = line.split('=')
     key_ini = sp.shift.strip
-    key = key_ini.downcase
+    key = 
+    key = key_to_real_key(key_ini) # rectif (p.e. exclude=>excludes)
     val = sp.join('=').strip
     val = val.sub(/^"/,'').sub(/"$/,'')
     if @metadata.key?(key)
@@ -117,5 +147,13 @@ def dispatch_metadata(code)
   end
 end
 
+def key_to_real_key(k_ini)
+  k = k_ini.dup.downcase
+  return KEY_TO_REAL_KEY[k] || k
+end
+
+KEY_TO_REAL_KEY = {
+  'exclude' => 'excludes'
+}
 end #/class SourceFile
 end #/module MailManager

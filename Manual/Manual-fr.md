@@ -33,6 +33,119 @@ Le fichier `path/to/mail.md` qui définit toutes les données doit être [correc
 ~~~
 
 
+---
+
+## Destinataire(s) du mail
+
+<a name="define-recipients"></a>
+
+### Définition du ou des destinataires
+
+On peut définir un ou plusieurs destinataires, par fichier ou par valeur explicite. Ces destinataires se définissent grâce à la métadonnée `To` de la manière suivante.
+
+Par valeur explicite :
+
+~~~yaml
+---
+To = philippe.perret@yahoo.fr
+---
+~~~
+
+Avec un patronyme :
+
+~~~yaml
+---
+To = Phil <philippe.perret@yahoo.fr>
+---
+~~~
+
+Par valeur explicite avec plusieurs destinataires :
+
+~~~yaml
+---
+To = ["mail1@chez.lui", "mail2@chez.eux", "Phil <mailphil@chez.lui"]
+---
+~~~
+
+Avec des valeurs explicites, un sexe et un patronyme précisés :
+
+> Note : l’ordre importe peu, l’application est capable de reconnaitre le type de la donnée.
+
+~~~markdown
+---
+To = ["H,Patrick,patrick@gmail.com"]
+---
+~~~
+
+ou :
+
+~~~markdown
+---
+To = "H,Patrick,patrick@gemal.com"
+---
+~~~
+
+
+
+Par liste d’adresses :
+
+~~~yaml
+---
+To = /path/to/liste/adresses.csv
+---
+~~~
+
+<a name="liste-adresses-mails"></a>
+
+#### Liste d’adresses dans fichier
+
+Pour fonctionner avec **MailManager**, un fichier contenant une liste d’adresses doit respecter certaines règles :
+
+* Si c’est un fichier `YAML`, ça doit être une liste (`Array`) d’éléments qui définissent tous, au minimum, la propriété `:mail` (ou `‘mail'` ou `‘Mail'` et la propriété `:sexe` définissant le sexe du destinataire, par `F` ou `H`.
+* Si c’est un fichier `CSV`, il doit impérativement :
+  * utiliser la **virgule** comme délimiteur de données,
+  * posséder une entête avec le **nom des colonnes**,
+  * définir la colonne **`Mail`** et la colonne **`Sexe`** (valeur `H` ou `F`),
+  * il peut définir la colonne `Patronyme` avec la patronyme de la personne,
+  * il peut définir la colonne `Fonction` définissant la fonction du destinataire.
+
+---
+
+<a name="define-exclusions"></a>
+
+### Définition des exclusions
+
+Les « exclusions » correspondent aux emails à qui ont ne doit pas envoyer les messages dans une liste de destinataires ([définie par fichier par exemple](#liste-adresses-mails)).
+
+On les définit en définissant la propriété `Excludes` dans les [métadonnées](#metadata).
+
+Par exemple :
+
+~~~markdown
+---
+# ...
+Excludes = path/to/file.csv
+---
+~~~
+
+ou :
+
+~~~markdown
+---
+# ...
+Excludes = "monadresse@chez.moi"
+~~~
+
+ou :
+
+~~~markdown
+---
+# ...
+Excludes = ["Patrick <patrick@chez.lui>", "Moi,F,marion@chez.elle"]
+---
+~~~
+
+
 
 ---
 
@@ -171,70 +284,6 @@ etc.
 
 
 Note implémentation : ces propriétés sont définies dans la constantes `FEMININES` dans le fichier `constants.rb` dans le cas où il faille en ajouter.
-
----
-
-<a name="define-recipients"></a>
-
-### Définition du ou des destinataires
-
-On peut définir un ou plusieurs destinataires, par fichier ou par valeur explicite. Ces destinataires se définissent grâce à la métadonnée `To` de la manière suivante.
-
-Par valeur explicite :
-
-~~~yaml
----
-To = philippe.perret@yahoo.fr
----
-~~~
-
-Avec un patronyme :
-
-~~~yaml
----
-To = Phil <philippe.perret@yahoo.fr>
----
-~~~
-
-Par valeur explicite avec plusieurs destinataires :
-
-~~~yaml
----
-To = ["mail1@chez.lui", "mail2@chez.eux", "Phil <mailphil@chez.lui"]
----
-~~~
-
-Avec des valeurs explicites, un sexe et un patronyme précisés :
-
-> Note : l’ordre importe peu, l’application est capable de reconnaitre le type de la donnée.
-
-~~~markdown
----
-To = ["H,Patrick,patrick@gmail.com"]
----
-~~~
-
-
-
-Par liste d’adresses :
-
-~~~yaml
----
-To = /path/to/liste/adresses.csv
----
-~~~
-
-#### Liste d’adresses dans fichier
-
-Pour fonctionner avec **MailManager**, un fichier contenant une liste d’adresses doit respecter certaines règles :
-
-* Si c’est un fichier `YAML`, ça doit être une liste (`Array`) d’éléments qui définissent tous, au minimum, la propriété `:mail` (ou `‘mail'` ou `‘Mail'` et la propriété `:sexe` définissant le sexe du destinataire, par `F` ou `H`.
-* Si c’est un fichier `CSV`, il doit impérativement :
-  * utiliser la **virgule** comme délimiteur de données,
-  * posséder une entête avec le **nom des colonnes**,
-  * définir la colonne **`Mail`** et la colonne **`Sexe`** (valeur `H` ou `F`),
-  * il peut définir la colonne `Patronyme` avec la patronyme de la personne,
-  * il peut définir la colonne `Fonction` définissant la fonction du destinataire.
 
 ---
 

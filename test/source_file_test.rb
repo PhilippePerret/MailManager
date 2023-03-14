@@ -38,6 +38,13 @@ class SourceFileTest < Minitest::Test
     end
   end
 
+  def test_predicate_require_patronyme
+    skip "implémenter test de MailManager::SourceFile#require_patronyme?"
+  end
+
+  def test_predicate_require_sexe
+    skip "implémenter test de MailManager::SourceFile#require_sexe?"
+  end
 
 
   # Construction d'un fichier source à partir des données métadata +md+

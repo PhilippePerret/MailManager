@@ -4,7 +4,7 @@
   Gestion du rapport d'envoi
 =end
 module MailManager
-class Report
+class Reporter
 
   attr_reader :sender
 
@@ -67,15 +67,19 @@ class Report
     end
   end
 
+  def add_exclusion(recipient, source_file)
+    @exclusions << {recipient:recipient, time:time.now }
+    log("📤 Exclus de l'envoi : #{recipient.inspect}")
+  end
 
   def add_failure(recipient, source_file, err)
     @errors << {recipient: recipient, error: err, time: Time.now}
-    log("# Problème avec : #{recipient.mail} : #{err.message}")
+    log("🧨 Problème avec : #{recipient.mail} : #{err.message}")
   end
 
   def add_success(recipient, source_file)
     @success << {recipient: recipient, time: Time.now}
-    log("Envoi à #{recipient.mail} du mail #{source_file.subject}")
+    log("Envoi à #{recipient.inspect} du mail #{source_file.subject}")
   end
 
   # --- Methodes de comptes ---

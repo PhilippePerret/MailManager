@@ -12,19 +12,33 @@ class Recipient
 ###################       CLASSE      ###################
 class << self
 
+attr_reader :source_file
+
 # @return [Array<MailManager::Recipient>] La liste des
 # destinataires, même lorsqu'il n'y en a qu'un seul.
-def destinataires_from(str, **options)
+# 
+# @param [String] str SOIT un path vers un fichier contenant les destinataires (csv)
+#                     SOIT un mail seul (quand exclusion par exemple)
+#                     SOIT un "patronyme <email>"
+#                     SOIT une liste (string) de mails ou de patronyme
+# @param [MailManager::SourceFile] srcfile Fichier source définissant entièrement l'envoi
+# @param [Hash] options
+# @option options [Boolean] :only_mail Si true, seul le mail est requis pour que le destinataire soit valide (liste d'exclusions)
+# (pour le moment, toutes les autres données — qui correspondent aux
+#  méta données — sont inutilisées)
+# 
+def destinataires_from(str, srcfile, **options)
+  @source_file = srcfile
   if File.exist?(str)
     # <= Un fichier
     # => C'est une liste de destinataires
-    load(str)
+    load(str, **options)
   elsif str.match?(/^\[(.+)\]$/)
-    traite_as_recipients_list(eval(str))
+    traite_as_recipients_list(eval(str), **options)
   elsif str.match?('@')
     # <= Contient l'arobase
     # => C'est une adresse mail ou liste
-    [new(str)]
+    [new(str, **options)]
   end
 end
 
@@ -35,30 +49,34 @@ end
 # @note
 #   L'existence doit être vérifiée avant.
 # 
-def load(fpath)
+# @param [String] fpath   Chemin d'accès au fichier CSVde destinataires
+# @param [Hash] options   Cf. #destinataires_from ci-dessus
+# 
+def load(fpath, **options)
   case File.extname(fpath).downcase
   when '.csv'
     options = {headers:true, col_sep:','}
-    CSV.read(fpath, **options)
+    CSV.read(fpath, **options).reject{|line|line.start_with?('# ')}
   when '.yaml'
     YAML.load_file(fpath)
   else
     raise BadListingError, ERRORS['listing']['bad_extension'] % File.extname(fpath).downcase
   end.map do |ddest|
-    new(ddest)
+    new(ddest, **options)
   end
 end
 
 # Traitement d'une liste de destinataires définis en dur dans
 # l'entête du mail
-def traite_as_recipients_list(liste)
-  liste.map { |dst| new(dst) }
+def traite_as_recipients_list(liste, **options)
+  liste.map { |dst| new(dst, **options) }
 end
   
 end #/<< self
 ###################       INSTANCE      ###################
   
   attr_reader :mail
+  attr_reader :options
 
 
   BASE_REG_MAIL = /((?:[a-zA-Z0-9._\-]+)@(?:[^ .,]+)\.[a-zA-Z]{2,10})/
@@ -70,7 +88,12 @@ end #/<< self
   #   - un string : l'adresse mail seule
   #   - un string : une ligne de donnée d'un fichier csv
   #   - un hash : les données :mail, :patronyme, etc.
-  def initialize(designation)
+  # 
+  # @param [String] designation Cf. ci-dessus
+  # @param [Hash] options
+  # @option options [Boolean] :only_mail  Si TRUE, seul le mail est nécessaire pour valider le destinataire (exclusion de destinataire par son mail)
+  def initialize(designation, **options)
+    @options    = options
     @data       = {}
     @fonction   = nil
     @mail       = nil
@@ -97,21 +120,37 @@ end #/<< self
       raise ERRORS['mail']['invalid'] % designation
     when Hash
       dispatch_data(designation)
-      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['missing_value'] % designation.inspect)
     when CSV::Row
       dispatch_data(designation.to_hash)
-      (@mail && @sexe) || raise(BadListingError, ERRORS['listing']['missing_value'] % designation.inspect)
     else
       raise "Je ne sais pas comment traiter une désignation de classe #{designation.class.inspect}."
     end
     #
-    # Le mail doit toujours exister
+    # Vérification de la validité des informations sur le destina-
+    # taire en fonction du contexte
     # 
-    @mail || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % designation.inspect)
-    # - Toujours le passer en minuscules -
+    check_if_valid
+    # - Toujours passer le mail en minuscules -
     @mail = @mail.strip.downcase
   end
   # /instanciate
+
+  def inspect
+    @inspect ||= "#{patronyme} (#{mail})"
+  end
+
+  def check_if_valid
+    des = designation.inspect
+    not(@mail.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % des)
+    unless options[:only_mail]
+      if self.class.source_file.require_patronyme?
+        not(patronyme.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_patronyme'] % des)
+      end
+      if self.class.source_file.require_feminines?
+        not(@sexe.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_sexe'] % des)
+      end
+    end
+  end
 
   # @return [String] L'adresse à écrire dans le mail
   def as_to
@@ -133,7 +172,12 @@ end #/<< self
 
   # --- Données du destinataire ---
 
-  def patronyme ; @patronyme  || "#{prenom} #{nom}".strip end
+  def patronyme ; @patronyme  || patronyme_from_prenom_nom end
+  def patronyme_from_prenom_nom
+    if prenom && nom
+      "#{prenom} #{nom}".strip
+    end
+  end
   def sexe      ; @sexe       || 'H' end
   def fonction  ; @fonction   end
   def prenom

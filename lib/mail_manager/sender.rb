@@ -46,13 +46,22 @@ def recipients
         MailManager::Recipient.new(ddest)
       end
     else
+      # 
+      # Les destinataires "normaux" définis pour cet envoi
+      # 
       source_file.destinataires
     end
   end
 end
 
+# @return [Hash] Table des exclusions, avec en clé les mails
+# 
+def exclusions
+  @exclusions ||= source_file.exclusions
+end
+
 def reporter
-  @reporter ||= Report.new(self)
+  @reporter ||= Reporter.new(self)
 end
 
 # Pour envoyer le mail tout de suite
@@ -63,12 +72,20 @@ def send
   # 
   Object.const_set('NOMBRE_MAILS', recipients.count)
 
+  # 
+  # Nombre d'exclusions
+  # 
+  nombre_exclusions = exclusions.count
+
   #
   # Demander confirmation, s'il y a plus d'un certain nombre
   # de destinataires
   # 
   if NOMBRE_MAILS > 5
-    Q.yes?("Dois-je procéder à ce mailing (#{NOMBRE_MAILS} destinataires) ?".jaune) || begin
+    text_nombre = ["#{NOMBRE_MAILS} destinataires"]
+    text_nombre << " (dont #{nombre_exclusions} exclusions)" if nombre_exclusions > 0
+    text_nombre = text_nombre.join('')
+    Q.yes?("Dois-je procéder à ce mailing (#{text_nombre}) ?".jaune) || begin
       puts "Bien, je renonce.".bleu
       return
     end
@@ -93,6 +110,14 @@ def send
   # 
   recipients.each_with_index do |destinataire, idx|
     # +destinataire+ est une instance MailManager::Recipient
+
+    #
+    # Un destinataire exclus
+    # 
+    if exclusions.key?(destinataire.mail)
+      reporter.add_exclusion(destinataire, source_file)
+      next
+    end
     
     # 
     # Fabrication du code final en fonction du destinataire

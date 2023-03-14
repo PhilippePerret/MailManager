@@ -87,6 +87,10 @@ class RecipientClassTest < Minitest::Test
     end
   end
 
+  def test_check_if_valid
+    skip "Implémenter la méthode MailManager::Recipient#check_if_valid"
+  end
+
 
   def listing(name)
     File.join(TEST_FOLDER,'assets','emails', name)

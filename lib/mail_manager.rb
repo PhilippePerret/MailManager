@@ -9,7 +9,7 @@ require_relative "mail_manager/image_manager"
 require_relative "mail_manager/message"
 require_relative "mail_manager/mail"
 require_relative "mail_manager/sender"
-require_relative "mail_manager/report"
+require_relative "mail_manager/reporter"
 require_relative "mail_manager/utils"
 
 module MailManager
