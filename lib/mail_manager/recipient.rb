@@ -55,8 +55,8 @@ end
 def load(fpath, **options)
   case File.extname(fpath).downcase
   when '.csv'
-    options = {headers:true, col_sep:','}
-    CSV.read(fpath, **options).reject{|line|line.start_with?('# ')}
+    csv_options = {headers:true, col_sep:','}
+    CSV.read(fpath, **csv_options).reject{|r|r.to_s.start_with?('# ')}
   when '.yaml'
     YAML.load_file(fpath)
   else
@@ -99,6 +99,7 @@ end #/<< self
     @mail       = nil
     @sexe       = nil
     @patronyme  = nil
+    @raw_code   = designation
     # 
     # Étude de la désignation pour prendre les données
     # 
@@ -140,7 +141,7 @@ end #/<< self
   end
 
   def check_if_valid
-    des = designation.inspect
+    des = @raw_code.inspect
     not(@mail.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % des)
     unless options[:only_mail]
       if self.class.source_file.require_patronyme?
