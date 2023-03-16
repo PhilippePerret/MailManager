@@ -23,6 +23,10 @@ module MailManager
   def self.send(path, **options)
     path_valid?(path) || return
     source = MailManager::SourceFile.new(path)
+    if source.mail_type?
+      require_relative 'mail_manager/source_file_mail_type'
+      source = MailManager::SourceFileMailType.new(path)
+    end
     mail   = MailManager::Mail.new(source)
     sender = MailManager::Sender.new(mail, source)
     if sender.send_now?

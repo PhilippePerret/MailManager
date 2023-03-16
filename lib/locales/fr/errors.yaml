@@ -8,6 +8,7 @@ source_file:
   missing_to: 'il manque le destinataire (To = )'
   missing_from: 'il manque l’expéditeur (To = )'
   missing_subject: 'il manque le sujet du message (Subject = )'
+  missing_data: "Un mail type doit impérativement définir ses données dans la métadonnée 'Data'."
 mail:
   invalid: "Le mail '%s' est invalide"
 listing:
@@ -16,6 +17,7 @@ listing:
   missing_mail: 'La données "mail" est absolument requise, pour les listings (avec %s).'
   missing_sexe: "La données 'sexe' (H ou F) est absolument requise, pour les listings (avec %s)." 
   missing_value: "Il manque la donnée Mail ou la donnée Sexe dans la ligne %s…"
+
 recipient:
   require_mail: "Le mail est absolument requis, pour définir un destinataire (dans %s)"
   require_sexe: "Le sexe (H/F) est requis dans le message (dans %s)"

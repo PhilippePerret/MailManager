@@ -75,7 +75,7 @@ end
 # --- Données propres au mail ---
 
 def subject
-  @subject ||= source.metadata['subject']  
+  @subject ||= source.subject
 end
 
 def boundary

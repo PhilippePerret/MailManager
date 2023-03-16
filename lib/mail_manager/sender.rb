@@ -18,59 +18,22 @@ def initialize(mail, source_file)
   @source_file = source_file
 end
 
-# DESTINATAIRES du mail
-# 
-# @return [Array<MailManager::Recipient>] La liste des destinataires
-# 
-# @note
-#   C'est soit la liste défini dans le fichier du mail, soit, si
-#   l'option -e/--mail_errors est activée, la liste des mails du
-#   dernier envoi qui ont échoué
-# 
-def recipients
-  @recipients ||= begin
-    if CLI.option(:mail_errors)
-      if File.exist?(reporter.errors_file)
-        errors = Marshal.load(File.read(reporter.errors_file))
-        File.delete(reporter.errors_file)
-        errors.map { |derr| derr[:recipient] }
-      else
-        raise MailManagerError, ERRORS['no_mails_errors_file']
-      end
-    elsif CLI.option(:admin)
-      [
-        MailManager::Recipient.new(ADMINISTRATOR)
-      ]
-    elsif CLI.option(:test)
-      TEST_RECIPIENTS.map do |ddest|
-        MailManager::Recipient.new(ddest)
-      end
-    else
-      # 
-      # Les destinataires "normaux" définis pour cet envoi
-      # 
-      source_file.destinataires
-    end
-  end
-end
-
-# @return [Hash] Table des exclusions, avec en clé les mails
-# 
-def exclusions
-  @exclusions ||= source_file.exclusions
-end
-
-def reporter
-  @reporter ||= Reporter.new(self)
-end
 
 # Pour envoyer le mail tout de suite
 def send
   clear
+
+  Recipient.source_file = source_file
+
   # 
   # Nombre de mails à envoyer
   # 
-  Object.const_set('NOMBRE_MAILS', recipients.count)
+  begin
+    Object.const_set('NOMBRE_MAILS', recipients.count)
+  rescue TTY::Reader::InputInterrupt
+    puts "\n\nAbandon…".bleu
+    exit 3
+  end
 
   # 
   # Nombre d'exclusions
@@ -124,6 +87,9 @@ def send
     # 
     begin
       code_final = code_mail_final(destinataire)
+    rescue TTY::Reader::InputInterrupt
+      puts "\n\nAbandon…".bleu
+      exit 3
     rescue Exception => e
       reporter.add_failure(destinataire, source_file, e)      
       next
@@ -135,7 +101,9 @@ def send
     STDOUT.write "\rEnvoi du message…".ljust(console_width).bleu
 
     if simulation?
+
       simule_envoi_mail(destinataire, code_final)
+    
     else
 
       #############################
@@ -145,6 +113,9 @@ def send
         Net::SMTP.start(*SERVER_DATA) do |smtp|
           smtp.send_message(code_final,sender_mail,destinataire.mail)
         end
+      rescue TTY::Reader::InputInterrupt
+        puts "\n\nAbandon…".bleu
+        exit 3
       rescue Exception => e
         reporter.add_failure(destinataire, source_file, e)
       else
@@ -168,6 +139,53 @@ def send
   end
 end #/send
 
+
+# DESTINATAIRES du mail
+# 
+# @return [Array<MailManager::Recipient>] La liste des destinataires
+# 
+# @note
+#   C'est soit la liste défini dans le fichier du mail, soit, si
+#   l'option -e/--mail_errors est activée, la liste des mails du
+#   dernier envoi qui ont échoué
+# 
+def recipients
+  @recipients ||= begin
+    if CLI.option(:mail_errors)
+      if File.exist?(reporter.errors_file)
+        errors = Marshal.load(File.read(reporter.errors_file))
+        File.delete(reporter.errors_file)
+        errors.map { |derr| derr[:recipient] }
+      else
+        raise MailManagerError, ERRORS['no_mails_errors_file']
+      end
+    elsif CLI.option(:admin)
+      [
+        MailManager::Recipient.new(ADMINISTRATOR)
+      ]
+    elsif CLI.option(:test)
+      TEST_RECIPIENTS.map do |ddest|
+        MailManager::Recipient.new(ddest)
+      end
+    else
+      # 
+      # Les destinataires "normaux" définis pour cet envoi
+      # 
+      source_file.destinataires
+    end
+  end
+end
+
+# @return [Hash] Table des exclusions, avec en clé les mails
+# 
+def exclusions
+  @exclusions ||= source_file.exclusions
+end
+
+def reporter
+  @reporter ||= Reporter.new(self)
+end
+
 def mail_femme_path
   @mail_femme_path ||= File.join(TMP_FOLDER,'mail_femme.eml')
 end
@@ -186,8 +204,9 @@ def temporiser(idx, mail)
   else
     secondes = delai_incompressible + rand(delai_compressible)
     nieme = idx > 0 ? "#{idx + 1}e" : '1er'
+    prefix_sim = simulation? ? "[SIMULATION] " : ''
     while (secondes -= 1) > 0
-      STDOUT.write "\rAttente de #{secondes} secondes avant l'envoi du #{nieme} message sur #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
+      STDOUT.write "\r#{prefix_sim}Attente de #{secondes} secondes avant l'envoi du #{nieme} message sur #{NOMBRE_MAILS} (#{mail}).".ljust(console_width).jaune
       sleep 1
     end
   end

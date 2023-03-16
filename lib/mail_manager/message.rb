@@ -10,12 +10,14 @@
 module MailManager
 class Message
 
+  attr_reader :source_file
   attr_reader :raw_code
   attr_reader :variables
   attr_reader :options
 
-  def initialize(raw_code, **options)
-    @raw_code   = raw_code
+  def initialize(source_file, raw_code, **options)
+    @source_file  = source_file
+    @raw_code     = raw_code
     # puts "options : #{options.inspect}".jaune
     @variables  = options.delete(:variables) || {}
     @options    = options
@@ -34,25 +36,7 @@ class Message
   end
 
   # Construction du code complet
-  # 
   # @return [HTMLString] Le code complet du message en HTML
-  # 
-  # def assemblage
-  #   <<~HTML
-  #   <!DOCTYPE html>
-  #   <html lang="fr">
-  #   <head>
-  #   #{HEAD}
-  #   <style type="text/css">
-  #   #{head_style}
-  #   </style>
-  #   </head>
-  #   <body>
-  #   #{tested_code}
-  #   </body>
-  #   </html>
-  #   HTML
-  # end
   def assemblage
     <<~HTML
     <!DOCTYPE html>
@@ -72,18 +56,10 @@ class Message
     HTML
   end
 
-
-  # Pour tester du code brut (rien ajouté au body à part ça)
-  def tested_code
-    # 
-    # DEV - POUR FAIRE DES ESSAIS
-    # 
-    # Marche, avec <table width="400">
-    return <<~HTML
-    <table id="main">
-      <tr><td>#{LOREM_1}</td></tr>
-    </table>
-    HTML
+  # @return true si c'est un mail type
+  # (cela change complètement le comportement)
+  def mail_type?
+    :TRUE == @ismailtype ||= true_or_false(options[:mail_type] == true)
   end
 
   def head_style
@@ -107,7 +83,12 @@ class Message
 
   # @return [HTMLString] les rangées de la table pour le mail
   def html_rows
-    traited_code
+    if mail_type?
+      require_relative 'message_as_mail_type'
+      traited_code_as_mail_type
+    else
+      traited_code
+    end
   end
 
 
@@ -119,7 +100,7 @@ class Message
       code_html = traite_table_in_kramdown_code(code_html)
       code_html = rowize_kramdown_code(code_html)
       code_html = remplace_images_in(code_html)
-      @message  = remplace_variables_in(code_html)
+      remplace_variables_in(code_html)
     end
   end
 

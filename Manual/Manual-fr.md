@@ -2,6 +2,14 @@
 
 
 
+## Description
+
+**MailManager** (qui produit la commande **`send-mail`**) permet de fonctionner à trois niveaux :
+
+1) l’envoi de simple texte, à une personne en particulier,
+2) l’envoi d’un mail modèle à un ensemble d’adresses défini dans des fichiers 
+3) l’envoi de mail-type à une ou plusieurs personnes
+
 ## mail/mailing en ligne de commande
 
 Jouer la commande :
@@ -284,6 +292,151 @@ etc.
 
 
 Note implémentation : ces propriétés sont définies dans la constantes `FEMININES` dans le fichier `constants.rb` dans le cas où il faille en ajouter.
+
+---
+
+<a name="mail-type"></a>
+
+## Envoi de mail-type
+
+Un *mail type* est un mail dont le contenu peut varier en fonction du contexte. Typiquement, il a été mis en place lorsqu’il fallait confirmer l’envoi des exemplaires découvertes d’analyse aux conservatoires.
+
+Prenons cet exemple pour comprendre concrètement comment cela marche.
+
+Ce mail contenait, en variables :
+
+* le nom du destinataire (“Monsieur untel”),
+* le livre qui avait été envoyé,
+* la date exactement de réception du livre
+
+Son contenu final devrait être quelque chose comme :
+
+~~~text
+En sujet : 🎼 ICARE éditions : Votre exemplaire découverte
+
+En message :
+
+Bonjour monsieur Untel Dutel,
+
+Ce message pour vous informer que votre exemplaire gratuit de « Comprendre et apprendre le Premier prélude de Bach » vient de vous être expédié.
+
+Sauf incident, ce livre devrait vous parvenir le lundi 27 mars prochain.
+
+En vous remerciant de votre intérêt et vous en souhaitant bonne lecture,
+
+Bien à vous,
+
+Les Éditions ICARE
+--------------------
+[Logo]
+https://icare-editions.fr
+~~~
+
+Ce message est défini par :
+
+~~~markdown
+---
+Type = mail-type
+Subject = 🎼 ICARE éditions : Votre exemplaire découvre de #{livre.titre_court}
+From = administration@icare-editions.fr
+To = /path/to/adresse/conservatoires.csv
+# Pour ne pas proposer ceux qui l'ont déjà reçu
+Excludes = /path/to/conservatoires_clients.csv
+# Pour le logo
+IMGlogo = /path/to/image/logo
+# Pour savoir comment traiter les données
+Data = module_mail_type.rb
+---
+Bonjour %{madame} %{patronyme},
+
+Ce message pour vous informer que votre exemplaire gratuit de « #{livre.titre} » vient de vous être expédié.
+
+Sauf incident, ce livre devrait vous parvenir le #{jour_date} prochain.
+
+En vous remerciant de votre intérêt et vous en souhaitant bonne lecture,
+
+Bien à vous,
+
+Les Éditions ICARE<br />
+--------------------
+IMGlogo <br />
+https://icare-editions.fr
+~~~
+
+Remarquez les code `#{...}`. Il doivent pouvoir être définis par le module `module_mail_type.rb` défini dans `Data =` dans les métadonnées. 
+
+> La valeur doit être un chemin absolu ou le nom du module, qui doit alors obligatoirement se trouver au même niveau que le message du mail-type.
+
+Ce fichier implémente le module `MailTypeModule` qui doit définir les propriétés-méthodes utilisées par le mail-type. On trouve par exemple ici :
+
+> Ce code est volontairement complexe pour montrer les possibilités infinies
+
+~~~ruby
+module MailTypeModule
+
+# 
+# La liste des livres concernés par ce mail-type
+# 
+Livre = Struct.new(:titre, :titre_court)
+CHOIX_LIVRE = [
+  Livre.new("Comprendre & apprendre le premier prélude en Do de BACH","Prélude de BACH"),
+  Livre.new("Comprendre & apprendre le clair de lune de BEETHOVEN", "Clair de lune"),
+  Livre.new("Comprendre & apprendre Gens et pays lointains de R. SCHUMANN", "Pays lointains"),
+  Livre.new("Gammes et accords dans tous les tons", "Gammes et accords"),
+].map do |book|
+  {name: book.titre_court, value: book}
+end
+
+def livre
+  @livre ||= begin
+    ### C'est ici que l'application demande le livre pour ###
+    ### pouvoir écrire livre.titre et livre.titre_court   ###
+    clear
+    Q.select("Pour quel livre ?".jaune, CHOIX_LIVRE, **{per_page:CHOIX_LIVRE.count})
+  end
+end
+def jour_date
+  ### C'est ici que l'application demande la date de réception ###
+  ### qui est définie par '#{jour_date}' dans le code du mail  ###
+  now = Time.now + 7.jours
+  auj = [['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'][now.wday - 1]]
+  auj << now.day
+  auj << MOIS[now.month][:long]
+  auj = auj.join(' ')
+  Q.ask("Date de réception (p.e. 'mardi 15 août')".jaune, **{default:auj})
+end
+
+end #/module MailTypeModule
+~~~
+
+Bien sûr, on pourrait imaginer un code beaucoup plus simple, comme :
+
+~~~markdown
+---
+# ...
+Data = fichier_module.rb
+---
+Bonjour,
+
+Nous sommes le #{jour_humain}.
+
+~~~
+
+Avec un module, au même niveau que le mail-type :
+
+~~~ruby
+# Dans fichier_module.rb
+
+module MailTypeModule
+  
+  def jour_humain
+    Time.now('%d %m %Y')
+  end
+  
+end 
+~~~
+
+
 
 ---
 

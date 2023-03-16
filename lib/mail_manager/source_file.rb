@@ -21,8 +21,8 @@ end
 
 def instance_mail_message
   @instance_mail_message ||= begin
-    options = {variables: variables}
-    MailManager::Message.new(raw_message, **options)
+    options = {variables: variables, mail_type: mail_type?}
+    MailManager::Message.new(self,raw_message, **options)
   end
 end
 
@@ -36,7 +36,10 @@ def message_plain_text
 end
 
 def raw_message ; @raw_message  end
-def subject     ; @subject      ||= metadata['subject']  end
+def subject     ; @subject      ||= metadata['subject']   end
+def subject=(v) ; @subject        = v end
+def type        ; @type         ||= metadata['type']      end
+def data        ; @data         ||= metadata['data']      end
 def sender
   @sender ||= begin
     fr = metadata['from']
@@ -53,6 +56,11 @@ end
 
 # @return [Array<MailManager::Recipient>] la liste de destinataires
 # même s'il n'y en a qu'un seul.
+# 
+# @note
+#   La méthode est surclassée quand il s'agit d'un mail-type. Cf. 
+#   dans le fichier source_file_mail_type
+# 
 def destinataires
   @destinataires ||= MailManager::Recipient.destinataires_from(metadata['to'], self, **metadata)
 end
@@ -71,6 +79,13 @@ def exclusions
 end
 
 # --- Predicate Methods ---
+
+# @return true si c'est un mail-type
+# Le traitement d'un mail type est tout à fait différent
+# du traitement d'un mail de mailing
+def mail_type?
+  type == 'mail-type'
+end
 
 # @return true si le patronyme est requis dans le message
 def require_patronyme?
@@ -93,6 +108,8 @@ def data_valid_or_raise
   metadata['to']        || raise('missing_to')
   metadata['from']      || raise('missing_from')
   metadata['subject']   || raise('missing_subject')
+  # Pour les mails type
+  (mail_type? && metadata['data']) || raise('missing_data')
 rescue Exception => e
   raise InvalidDataError, "#{ERRORS['source_file']['invalid_metadata']} : #{ERRORS['source_file'][e.message]}"
 end
@@ -121,9 +138,11 @@ def dispatch_metadata(code)
   @metadata   = {
     'to'        => nil,
     'from'      => nil,
+    'type'      => nil,
     'subject'   => nil,
     'ship_date' => nil,
     'excludes'  => nil,
+    'data'  => nil,
   }
   code.split("\n").each do |line|
     line = line.strip

@@ -12,7 +12,7 @@ class Recipient
 ###################       CLASSE      ###################
 class << self
 
-attr_reader :source_file
+attr_accessor :source_file
 
 # @return [Array<MailManager::Recipient>] La liste des
 # destinataires, même lorsqu'il n'y en a qu'un seul.
@@ -150,10 +150,10 @@ end #/<< self
     des = @raw_code.inspect
     not(@mail.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_mail'] % des)
     unless options[:only_mail]
-      if self.class.source_file.require_patronyme?
+      if (self.class.source_file).require_patronyme?
         not(patronyme.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_patronyme'] % des)
       end
-      if self.class.source_file.require_feminines?
+      if (self.class.source_file).require_feminines?
         not(@sexe.nil?) || raise(InvalidDataError, ERRORS['recipient']['require_sexe'] % des)
       end
     end
@@ -179,7 +179,11 @@ end #/<< self
 
   # --- Données du destinataire ---
 
-  def patronyme ; @patronyme  || patronyme_from_prenom_nom end
+  def patronyme
+    (@patronyme  || begin
+          patronyme_from_prenom_nom 
+        end).titleize
+  end
   def patronyme_from_prenom_nom
     if prenom && nom
       "#{prenom} #{nom}".strip
