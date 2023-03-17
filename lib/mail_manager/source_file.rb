@@ -109,7 +109,9 @@ def data_valid_or_raise
   metadata['from']      || raise('missing_from')
   metadata['subject']   || raise('missing_subject')
   # Pour les mails type
-  (mail_type? && metadata['data']) || raise('missing_data')
+  if mail_type?
+    metadata['data'] || raise('missing_data')
+  end
 rescue Exception => e
   raise InvalidDataError, "#{ERRORS['source_file']['invalid_metadata']} : #{ERRORS['source_file'][e.message]}"
 end
