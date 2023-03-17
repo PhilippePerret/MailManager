@@ -180,9 +180,11 @@ end #/<< self
   # --- Données du destinataire ---
 
   def patronyme
-    (@patronyme  || begin
-          patronyme_from_prenom_nom 
-        end).titleize
+    @patronyme_finalized ||= begin
+      pat = @patronyme || patronyme_from_prenom_nom 
+      pat = pat.titleize if pat.split(' ').count < 4
+      pat
+    end
   end
   def patronyme_from_prenom_nom
     if prenom && nom
