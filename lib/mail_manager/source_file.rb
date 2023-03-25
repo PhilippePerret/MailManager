@@ -9,6 +9,13 @@ require 'kramdown'
 module MailManager
 class SourceFile
 
+# Liste des données métadata qu'on peut trouver
+# 
+# @note
+#   Toute autre donnée sera ignorée
+# 
+METADATA_NAMES = ['name','to','from','type','subject','ship_date','excludes']
+
 attr_reader :path
 attr_reader :metadata
 attr_reader :variables
@@ -17,7 +24,19 @@ def initialize(path)
   @path = path
   traite_raw_code
   data_valid_or_raise
+  require_module if module?
 end
+
+# Méthode qui requierd le module qui accompagne peut-être le mail
+def require_module
+  require module_path
+  Message     .include MessageExtension     if defined?(MessageExtension)
+  self.class  .include SourceFileExtension  if defined?(SourceFileExtension)
+  Sender      .include SenderExtension      if defined?(SenderExtension)
+  Recipient   .include RecipientExtension   if defined?(RecipientExtension)
+end
+
+# --- Message methods ---
 
 def instance_mail_message
   @instance_mail_message ||= begin
@@ -35,11 +54,22 @@ def message_plain_text
   instance_mail_message.to_plain
 end
 
+# --- Méthodes de données ---
+
+# Pour parler du message, un nom qui doit le décrire assez bien.
+# En cas d'absence de cette donnée, c'est l'affixe qui est pris,
+# où les _ et les - sont remplacés par des espaces
+def name
+  @name ||= begin
+    metadata['name'] || begin
+      File.basename(path,File.extname(path)).gsub(/[_\-]/,' ')
+    end
+  end
+end
 def raw_message ; @raw_message  end
 def subject     ; @subject      ||= metadata['subject']   end
 def subject=(v) ; @subject        = v end
 def type        ; @type         ||= metadata['type']      end
-def data        ; @data         ||= metadata['data']      end
 def sender
   @sender ||= begin
     fr = metadata['from']
@@ -87,6 +117,15 @@ def mail_type?
   type == 'mail-type'
 end
 
+# @return true si un module ruby existe pour le mail
+# @rappel
+#   C'est un fichier qui porte le même affixe, mais avec '.rb' 
+#   en extension.
+# 
+def module?
+  File.exist?(module_path)
+end
+
 # @return true si le patronyme est requis dans le message
 def require_patronyme?
   raw_message.match?(/\%\{patronyme\}/i)
@@ -108,14 +147,24 @@ def data_valid_or_raise
   metadata['to']        || raise('missing_to')
   metadata['from']      || raise('missing_from')
   metadata['subject']   || raise('missing_subject')
-  # Pour les mails type
+  # Pour les mails type, le module est obligatoire (alors qu'il est
+  # optionnel pour les mailings)
   if mail_type?
-    metadata['data'] || raise('missing_data')
+    File.exist?(module_path) || raise('missing_data')
   end
 rescue Exception => e
   raise InvalidDataError, "#{ERRORS['source_file']['invalid_metadata']} : #{ERRORS['source_file'][e.message]}"
 end
 
+def module_path
+  @module_path ||= File.join(folder, "#{affixe}.rb")
+end
+def affixe
+  @affixe ||= File.basename(path,File.extname(path))
+end
+def folder
+  @folder ||= File.dirname(path)
+end
 
 private
 
@@ -137,15 +186,8 @@ end
 
 def dispatch_metadata(code)
   @variables  = {}
-  @metadata   = {
-    'to'        => nil,
-    'from'      => nil,
-    'type'      => nil,
-    'subject'   => nil,
-    'ship_date' => nil,
-    'excludes'  => nil,
-    'data'  => nil,
-  }
+  @metadata   = {}
+  METADATA_NAMES.each { |n| @metadata.merge!(n => nil)}
   code.split("\n").each do |line|
     line = line.strip
     next if line.empty? || line.start_with?('#')

@@ -7,20 +7,6 @@ class Message
   # 
   def traited_code_as_mail_type
 
-    data_path = if source_file.data.start_with?('/') && File.exist?(source_file.data)
-      source_file.data
-    else
-      File.expand_path(File.join('.',source_file.data))
-    end
-    puts "Module data : #{data_path.inspect}"
-    # 
-    # On requiert le fichier module data
-    # 
-    require data_path
-    # 
-    # On remplace les textes
-    # 
-    self.class.include MailTypeModule
     code = evaluate_mail_type(raw_code)
     source_file.subject = evaluate_mail_type(source_file.subject)
 

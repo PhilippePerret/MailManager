@@ -10,8 +10,8 @@ def destinataires
     end.map do |recipient|
       {name: "#{recipient.patronyme} <#{recipient.mail}>", value: recipient}
     end
-    clear
-    [Q.select("Envoyer à : ".jaune, dsts, **{per_page:console_height - 3,filter:true})]
+    Sender.print_suivi
+    [Q.select("Envoyer le mail « #{name} » à : ".jaune, dsts, **{per_page:console_height - 10,filter:true})]
   end
 end
 

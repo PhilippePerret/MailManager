@@ -21,6 +21,9 @@ def initialize(source)
   @source = source
 end
 
+# - raccourci -
+def name; source.name end
+
 # @param [MailManager::Message] message Instance du message du fichier source
 # @param [MailManager::Recipient] recipient Destinataire du message
 def assemble_code_final(recipient)

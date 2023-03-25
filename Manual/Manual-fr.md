@@ -1,53 +1,122 @@
-# DataMail - Gestion des mails
+# Mail-Manager — Gestion des mails
 
 
 
-## Description
+## Description générale
 
-**MailManager** (qui produit la commande **`send-mail`**) permet de fonctionner à trois niveaux :
+**MailManager** est une commande terminale (**`send-mail`**) et un **gem** qui permet de fonctionner à trois niveaux :
 
 1) l’envoi de simple texte, à une personne en particulier,
 2) l’envoi d’un mail modèle à un ensemble d’adresses défini dans des fichiers 
 3) l’envoi de mail-type à une ou plusieurs personnes
 
-## mail/mailing en ligne de commande
+### Mail/mailing en ligne de commande
 
 Jouer la commande :
 
 ~~~bash
-send-mail path/to/mail.md
+send-mail path/to/mail.md[ <options>]
 ~~~
 
-Le fichier `path/to/mail.md` qui définit toutes les données doit être [correctement formaté](#mail-file).
+Le fichier `path/to/mail.md` qui définit toutes les données doit être [correctement formaté](#message-file).
 
-### Options de la ligne de commande
+On trouve en annexes toutes les [options de la ligne de commande](#command-line-options).
 
-~~~txt
--s/--simulation 		Pour faire simplement une simulation d'envoi
+### Fichiers requis
 
--t/--test 					Pour faire un envoi seulement à des destinataires test (qui
-										vont pouvoir vérifier l'aspect du message. Ils doivent être
-										définis, pour le moment, dans TEST_RECIPIENTS dans constants.rb
+Pour fonctionner, l’app s’appuie sur :
 
--a/--admin 					Pour envoyer seulement à la personne définie comme l'administrateur
-										dans constants.rb (ADMINISTRATOR)
+* un [fichier markdown obligatoire](#message-file) qui définit aussi bien le message que les destinataires, l’expéditeur, le sujet, etc.
+* un [module ruby](#module-file) (obligatoire pour les mails type qui permet de lier des opérations quelconques à l’envoi d’un mail (à commencer par son archivage)
 
--e/--mail_errors		Pour re-procéder au dernier envoi en utilisant les mails qui ont 
-										échoué lors de ce dernier envoi (les mails ont été mis de côté et
-										le problème doit avoir été résolu).
+---
 
--d/--no_delay 			Pour ne pas temporiser les envois (1 seconde entre simplement)
+## Fichiers
+
+<a name="message-file"></a>
+
+### Fichier message
+
+Son format global est :
+
+~~~markdown
+---
+<metadata>
+---
+
+<message markdown>
+~~~
+
+
+
+<a name="module-file"></a>
+
+### Fichier module
+
+Il doit obligatoirement porter le même nom (affixe) que le message, avec bien sûr l’extension ruby `.rb`.
+
+Il peut contenir :
+
+~~~ruby
+module MessageExtension
+  
+  # Méthodes qui étendent la class MailManager::Message
+  # Les variables propres dans le mail sont définies ici.
+  
+end
+
+module SourceFileExtension
+  
+  # Méthodes qui étendent la class MailManager::SourceFile
+  
+end
+
+module RecipientExtension
+  
+  # Méthodes qui étendent la class MailManager::Recipient
+  
+end 
+
+module SenderExtension
+  
+  # Méthodes qui étendent la class MailManager::Sender
+  
+end
+~~~
+
+---
+
+
+
+<a name="message-definition"></a>
+
+## Définition du mail
+
+<a name="message-name"></a>
+
+### NOM DU MESSAGE
+
+Tout fichier markdown définissant un mail (de mailing ou mail-type) peut commencer par définir son nom (`Name`) qui servira autant à le décrire qu’à en parler dans les messages.
+
+~~~markdown
+---
+Name = "Fichier type envoyé suite à l'envoi de l'exemplaire découverte"
+Type = mail-type
+...
+---
 
 ~~~
+
+> Note : si cette valeur n’est pas fourni, c’est le nom du fichier, simplifié, qui sera utilisé.
 
 
 ---
 
-## Destinataire(s) du mail
+### DESTINATAIRE(s)
 
 <a name="define-recipients"></a>
 
-### Définition du ou des destinataires
+#### Définition du ou des destinataires
 
 On peut définir un ou plusieurs destinataires, par fichier ou par valeur explicite. Ces destinataires se définissent grâce à la métadonnée `To` de la manière suivante.
 
@@ -121,7 +190,7 @@ Pour fonctionner avec **MailManager**, un fichier contenant une liste d’adress
 
 <a name="define-exclusions"></a>
 
-### Définition des exclusions
+#### Définition des exclusions
 
 Les « exclusions » correspondent aux emails à qui ont ne doit pas envoyer les messages dans une liste de destinataires ([définie par fichier par exemple](#liste-adresses-mails)).
 
@@ -153,31 +222,17 @@ Excludes = ["Patrick <patrick@chez.lui>", "Moi,F,marion@chez.elle"]
 ---
 ~~~
 
+<a name="message-texte"></a>
 
-
----
-
-<a name="mail-file"></a>
-
-## Fichier mail
-
-On appelle “fichier mail” le fichier qui définit entièrement l’envoi à faire.
-
-Il doit impérativement :
-
-* être au format markdown
-* définir ses métadonnées
-* définir le texte du mail
-
-### Définition du texte du mail
+### TEXTE DU MAIL
 
 C'est un texte au format markdown, donc utilisant des marques de formatage simples comme l'étoile pour les italiques ou la double étoile pour le gras. Les titres sont précédés par des dièses.
 
-### Définition des variables
+#### Définition des variables
 
-Il existe deux types de variable : les variables qui dépendent des destinataires (quand c’est un mailing-list) et les variables qui permettent de simplifier le code (typiquement : pour les images).
+Il existe deux types de variable : les variables qui dépendent des destinataires (quand c’est un mailing-list par exemple) et les variables qui permettent de simplifier le code (typiquement : pour les images).
 
-#### Définition des variables template
+##### Définition des variables template
 
 Les “variables-template” sont définies une fois pour toutes dans le message à envoyer. Elles fonctionnent de façon très simples, avec un identifiant (en général majuscule pour le repérer plus facilement) dans le texte et sa définition dans le corps du message. Par exemple :
 
@@ -192,6 +247,8 @@ Avez-vous lu « SRPS » ? Si ce n'est pas le cas, je vous conseille
 de l'acheter car « SRPS » est un livre intéressant pour la rédaction
 du scénario.
 ~~~
+
+> Noter, ici, l’utilisation d’aucun signe permettant de reconnaitre la variable dans le message. Ceci pour y gagner au niveau de la lisibilité.
 
 #### Insérer une image
 
@@ -222,7 +279,7 @@ Ci-dessus, la variable `IMG1` sera remplacée par le code en dur de l’image de
 
 La variable `IMG1-alt` permet de définir la légende par défaut mais n’est pas obligatoire.
 
-### Insérer une table
+#### Insérer une table
 
 On le fait comme dans kramdown, par exemple :
 
@@ -259,9 +316,9 @@ Allez-vous mieux ?
 
 
 
-Le nom de la variable est obligatoirement en minuscule, même si elle est définie en majuscule dans le fichier de données.
+**Le nom de la variable est obligatoirement en minuscule**, même si elle est définie en majuscule dans le fichier de données.
 
-Dans le code, on peut utiliser les variables classiques (`mail`, `patronyme`, `fonction`) mais on peut aussi utiliser n’importe quelle propriété qui serait définie dans le fichier de données. **Mais attention** : il faut que cette donnée soit définie pour tous les destinataires. Par exemple, si tous les destinataires définissent la propriété `album`, on peut avoir : 
+Dans le code, on peut utiliser les variables classiques (`mail`, `patronyme`, `fonction`) mais on peut aussi utiliser n’importe quelle propriété qui serait définie dans le [fichier module](#module-file). **Mais attention** : il faut que cette donnée soit définie pour tous les destinataires. Par exemple, si tous les destinataires définissent la propriété `album`, on peut avoir : 
 
 ~~~markdown
 ---
@@ -472,3 +529,31 @@ Phil
 Utiliser `font_family = ...` et `font_size = 14pt` dans les métadonnées.
 
 Par défaut, la police est 'Times' et la taille est '14pt'.
+
+---
+
+<a name="annexe"></a>
+
+## Annexe
+
+<a name="command-line-options"></a>
+
+### Options de la ligne de commande
+
+~~~txt
+-s/--simulation 		Pour faire simplement une simulation d'envoi
+
+-t/--test 					Pour faire un envoi seulement à des destinataires test (qui
+										vont pouvoir vérifier l'aspect du message. Ils doivent être
+										définis, pour le moment, dans TEST_RECIPIENTS dans constants.rb
+
+-a/--admin 					Pour envoyer seulement à la personne définie comme l'administrateur
+										dans constants.rb (ADMINISTRATOR)
+
+-e/--mail_errors		Pour re-procéder au dernier envoi en utilisant les mails qui ont 
+										échoué lors de ce dernier envoi (les mails ont été mis de côté et
+										le problème doit avoir été résolu).
+
+-d/--no_delay 			Pour ne pas temporiser les envois (1 seconde entre simplement)
+
+~~~

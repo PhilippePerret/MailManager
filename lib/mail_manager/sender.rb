@@ -8,7 +8,18 @@
 require 'net/smtp'
 module MailManager
 class Sender
-
+###################       CLASSE      ###################
+class << self
+  def print_suivi
+    clear
+    puts suivi.join("\n")
+  end
+  def suivi
+    @suivi ||= ["\n","\n"]
+  end
+end #/<< self
+###################       INSTANCE      ###################
+  
 attr_reader :mail
 attr_reader :source_file
 
@@ -18,15 +29,20 @@ def initialize(mail, source_file)
   @source_file = source_file
 end
 
-
-# Pour envoyer le mail tout de suite
+# Pour envoyer le mail
 def send
-  clear
+  Sender.suivi << "--- Envoi du message « #{mail.name} » ---".bleu
+  Sender.suivi << "(commence par « #{source_file.raw_message[0..200].gsub(/\n/, '⏎')}»)".gris
+  Sender.print_suivi
 
   Recipient.source_file = source_file
 
   # 
   # Nombre de mails à envoyer
+  # 
+  # @note
+  #   C'est ici que pour un mail-type, on demande les destinataires
+  #   des messages
   # 
   begin
     Object.const_set('NOMBRE_MAILS', recipients.count)
