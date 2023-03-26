@@ -10,6 +10,7 @@ require_relative "mail_manager/message"
 require_relative "mail_manager/mail"
 require_relative "mail_manager/sender"
 require_relative "mail_manager/reporter"
+require_relative "mail_manager/history"
 require_relative "mail_manager/utils"
 
 module MailManager
@@ -21,7 +22,7 @@ module MailManager
   # fichier markdown à entête métadonnées.
   # 
   def self.send(path, **options)
-    path_valid?(path) || return
+    path = path_valid?(path) || return
     source = MailManager::SourceFile.new(path)
     if source.mail_type?
       require_relative 'mail_manager/source_file_mail_type'
@@ -43,13 +44,19 @@ module MailManager
   # porte l'extension Markdown (.md)
   def self.path_valid?(path)
     path.nil? && raise('is_nil')
+    # 
+    # Si la valeur donnée ne contient pas .md, on ajoute cette
+    # extensions
+    # 
+    path = "#{path}.md" if File.extname(path) == ''
     File.extname(path) == '.md' || raise('bad_extension')
     File.exist?(path) || raise('unfound_mail_file')
-    return true
   rescue Exception => e
     msg = ERRORS['source_file'][e.message] % path
     puts msg.rouge
     return false
+  else
+    return path
   end
 
 end

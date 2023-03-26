@@ -11,8 +11,20 @@ class Sender
 ###################       CLASSE      ###################
 class << self
   def print_suivi
-    clear
-    puts suivi.join("\n")
+    if test?
+      # 
+      # En mode test, on enregistre le suivi dans un fichier
+      #
+      suivi_path = File.join(TMP_FOLDER,'suivi.log')
+      File.write(suivi_path, suivi.join("\n"))
+    else
+      # 
+      # En mode normal, on l'affiche à l'écran
+      # 
+      clear
+      puts suivi.join("\n")
+    end
+    @suivi = nil
   end
   def suivi
     @suivi ||= ["\n","\n"]
@@ -31,6 +43,16 @@ end
 
 # Pour envoyer le mail
 def send
+
+  #
+  # Initialisation de l'historique pour cet envoi
+  # 
+  # @warning
+  #   Cette méthode ne détruit pas le fichier tmp/history.log mais
+  #   détruit le dossier contenant les mails envoyés précédemment.
+  # 
+  History.reset
+
   Sender.suivi << "--- Envoi du message « #{mail.name} » ---".bleu
   Sender.suivi << "(commence par « #{source_file.raw_message[0..200].gsub(/\n/, '⏎')}»)".gris
   Sender.print_suivi
@@ -113,8 +135,16 @@ def send
     # 
     # Temporisation
     # 
-    temporiser(idx, destinataire.mail) unless no_delai?
+    temporiser(idx, destinataire.mail) unless no_delai? || test?
     STDOUT.write "\rEnvoi du message…".ljust(console_width).bleu
+
+    #
+    # Quelle que soit la situation, on enregistre toujours ce
+    # message dans le dossier temporaire
+    # @note
+    #   C'est la class History qui s'en charge
+    # 
+    History.add(:send, {mail:mail, code_final:code_final, sender:sender_mail, recipient:destinataire})
 
     if simulation?
 
@@ -126,8 +156,10 @@ def send
       ###     ENVOI DU MAIL     ###
       #############################
       begin
-        Net::SMTP.start(*SERVER_DATA) do |smtp|
-          smtp.send_message(code_final,sender_mail,destinataire.mail)
+        unless test?
+          Net::SMTP.start(*SERVER_DATA) do |smtp|
+            smtp.send_message(code_final,sender_mail,destinataire.mail)
+          end
         end
       rescue TTY::Reader::InputInterrupt
         puts "\n\nAbandon…".bleu
