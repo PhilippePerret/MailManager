@@ -18,9 +18,10 @@ attr_accessor :source_file
 # destinataires, même lorsqu'il n'y en a qu'un seul.
 # 
 # @param [String] str SOIT un path vers un fichier contenant les destinataires (csv)
-#                     SOIT un mail seul (quand exclusion par exemple)
+#                     SOIT une adresse mail seule (quand exclusion par exemple)
 #                     SOIT un "patronyme <email>"
 #                     SOIT une liste (string) de mails ou de patronyme
+#                     SOIT une méthode à appeler pour faire la liste exacte
 # @param [MailManager::SourceFile] srcfile Fichier source définissant entièrement l'envoi
 # @param [Hash] options
 # @option options [Boolean] :only_mail Si true, seul le mail est requis pour que le destinataire soit valide (liste d'exclusions)
@@ -29,7 +30,9 @@ attr_accessor :source_file
 # 
 def destinataires_from(str, srcfile, **options)
   @source_file = srcfile
-  if File.exist?(str)
+  if str.start_with?(':')
+    traite_as_class_method(eval(str))
+  elsif File.exist?(str)
     # <= Un fichier
     # => C'est une liste de destinataires
     load(str, **options)
@@ -42,6 +45,14 @@ def destinataires_from(str, srcfile, **options)
   end
 end
 
+# Méthode utilisée quand le destinataire (To) est défini par une
+# méthode de classe qui doit permettre de récupérer les destinataires
+def traite_as_class_method(method)
+  if self.respond_to?(method)
+  else
+    raise BadListingError.new(ERRORS['recipient']['unknown_custom_list_method'] % method.inspect)
+  end
+end
 
 # Méthode qui charge une liste de destinataires à partir d'un
 # fichier CSV ou YAML

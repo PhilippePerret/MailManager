@@ -36,6 +36,12 @@ module MailManager
       sender.send_later
     end
     return true
+  rescue BadListingError => e
+    erreur(e)
+  rescue InvalidDataError => e
+    erreur(e)
+  rescue MailManagerError => e
+    erreur(e)
   end
 
 

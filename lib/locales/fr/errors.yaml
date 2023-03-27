@@ -22,4 +22,5 @@ recipient:
   require_mail: "Le mail est absolument requis, pour définir un destinataire (dans %s)"
   require_sexe: "Le sexe (H/F) est requis dans le message (dans %s)"
   require_patronyme: "Le patronyme est requis dans le message (il faut le définir explicitement ou définir les prénom/nom dans %s)"
+  unknown_custom_list_method: "La méthode %s devant renvoyer la liste des destinataires est inconnue…"
 no_mails_errors_file: 'Aucun fichier d’erreur de mail n’a été trouvé…'

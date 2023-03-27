@@ -6,4 +6,11 @@ module MailManager
   class MailManagerError < StandardError; end
   class InvalidDataError < StandardError; end
   class BadListingError < StandardError; end
+
+
+  def self.erreur(err)
+    puts "#{err.class} : #{err.message}".rouge
+    puts err.backtrace.join("\n").rouge if debug?
+  end
+  
 end
