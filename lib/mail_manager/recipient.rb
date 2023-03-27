@@ -47,10 +47,11 @@ end
 
 # Méthode utilisée quand le destinataire (To) est défini par une
 # méthode de classe qui doit permettre de récupérer les destinataires
-def traite_as_class_method(method)
-  if self.respond_to?(method)
+def traite_as_class_method(methode)
+  if self.respond_to?(methode)
+    self.send(methode)
   else
-    raise BadListingError.new(ERRORS['recipient']['unknown_custom_list_method'] % method.inspect)
+    raise BadListingError.new(ERRORS['recipient']['unknown_custom_list_method'] % methode.inspect)
   end
 end
 
@@ -67,7 +68,7 @@ def load(fpath, **options)
   case File.extname(fpath).downcase
   when '.csv'
     csv_options = {headers:true, col_sep:','}
-    CSV.read(fpath, **csv_options).reject{|r|r.to_s.start_with?('# ')}
+    ::CSV.read(fpath, **csv_options).reject{|r|r.to_s.start_with?('# ')}
   when '.yaml'
     YAML.load_file(fpath)
   else
@@ -138,7 +139,7 @@ end #/<< self
       raise ERRORS['mail']['invalid'] % designation
     when Hash
       dispatch_data(designation)
-    when CSV::Row
+    when ::CSV::Row
       dispatch_data(designation.to_hash)
     else
       raise "Je ne sais pas comment traiter une désignation de classe #{designation.class.inspect}."
@@ -192,7 +193,7 @@ end #/<< self
 
   def patronyme
     @patronyme_finalized ||= begin
-      pat = @patronyme || patronyme_from_prenom_nom 
+      pat = @patronyme || patronyme_from_prenom_nom || patronyme_from_mail
       pat = pat.titleize if pat.split(' ').count < 4
       pat
     end
@@ -200,6 +201,13 @@ end #/<< self
   def patronyme_from_prenom_nom
     if prenom && nom
       "#{prenom} #{nom}".strip
+    end
+  end
+  REG_PATRONYME_IN_MAIL  = /^(.+?)[.\-_](.+?)@/
+  def patronyme_from_mail
+    if mail.match?(REG_PATRONYME_IN_MAIL)
+      @prenom, @nom = mail.match(REG_PATRONYME_IN_MAIL)[1..2]
+      patronyme_from_prenom_nom
     end
   end
   def sexe      ; @sexe       || 'H' end

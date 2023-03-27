@@ -3,6 +3,7 @@ require 'clir'
 require_relative "mail_manager/version"
 require_relative 'mail_manager/constants'
 require_relative "mail_manager/messages_and_errors"
+require_relative "mail_manager/csv"
 require_relative "mail_manager/source_file"
 require_relative "mail_manager/recipient"
 require_relative "mail_manager/image_manager"

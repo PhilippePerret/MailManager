@@ -15,8 +15,9 @@ class Reporter
     # 
     # Instanciations
     # 
-    @errors   = []
-    @success  = []
+    @errors     = []
+    @success    = []
+    @exclusions = []
   end
 
   def errors_file
@@ -68,7 +69,7 @@ class Reporter
   end
 
   def add_exclusion(recipient, source_file)
-    @exclusions << {recipient:recipient, time:time.now }
+    @exclusions << {recipient:recipient, time: Time.now }
     log("📤 Exclus de l'envoi : #{recipient.inspect}")
   end
 

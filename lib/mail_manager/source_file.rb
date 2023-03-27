@@ -31,9 +31,13 @@ end
 def require_module
   require module_path
   Message     .include MessageExtension     if defined?(MessageExtension)
+  Message.extend MessageClassExtension      if defined?(MessageClassExtension)
   self.class  .include SourceFileExtension  if defined?(SourceFileExtension)
+  self.class  .extend SourceFileClassExtension  if defined?(SourceFileClassExtension)
   Sender      .include SenderExtension      if defined?(SenderExtension)
-  Recipient   .include RecipientExtension   if defined?(RecipientExtension)
+  Sender      .extend SenderClassExtension  if defined?(SenderClassExtension)
+  Recipient.include RecipientExtension      if defined?(RecipientExtension)
+  Recipient.extend(RecipientClassExtension) if defined?(RecipientClassExtension)
 end
 
 # --- Message methods ---

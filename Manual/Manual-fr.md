@@ -65,10 +65,18 @@ module MessageExtension
   
 end
 
+module MessageClassExtension
+  # Idem pour les méthodes de class
+end
+
 module SourceFileExtension
   
   # Méthodes qui étendent la class MailManager::SourceFile
   
+end
+
+module SourceFileClassExtension
+  # Idem pour les méthodes de class
 end
 
 module RecipientExtension
@@ -77,11 +85,20 @@ module RecipientExtension
   
 end 
 
+module RecipientClassExtension
+  # Idem pour les méthodes de class
+end
+
 module SenderExtension
   
   # Méthodes qui étendent la class MailManager::Sender
   
 end
+
+module SenderClassExtension
+  # Idem pour les méthodes de class
+end
+
 ~~~
 
 ---
@@ -171,6 +188,31 @@ Par liste d’adresses :
 To = /path/to/liste/adresses.csv
 ---
 ~~~
+
+Par méthode de classe :
+
+~~~
+---
+To = :ma_methode_de_class
+...
+---
+~~~
+
+Cette méthode doit être défini dans le [fichier module du mail](#fichier-module), en tant que **méthode de classe**, donc dans un module `RecipientClassExtension` :
+
+~~~ruby
+# in <affixe-mail>.rb
+module RecipientClassExtension
+  
+  def ma_methode_de_class
+    # ...
+    # @return liste des instances de destinataires
+  end
+  
+end #/module
+~~~
+
+
 
 <a name="liste-adresses-mails"></a>
 
