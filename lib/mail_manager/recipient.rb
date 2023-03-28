@@ -14,6 +14,68 @@ class << self
 
 attr_accessor :source_file
 
+# @return [Array<Recipient>] La liste exacte des destinataires, quelle
+# que soit la situation et les options. C'est vraiment à cette liste
+# de destinataire que le mail sera transmis.
+def final_recipients(sender)
+  @final_recipients ||= begin
+    reporter = sender.reporter
+    if respond_to?(:custom_recipients)
+      custom_recipients(sender.source_file)
+    elsif CLI.option(:mail_errors)
+      if File.exist?(reporter.errors_file)
+        errors = Marshal.load(File.read(reporter.errors_file))
+        File.delete(reporter.errors_file)
+        errors.map { |derr| derr[:recipient] }
+      else
+        raise MailManagerError, ERRORS['no_mails_errors_file']
+      end
+    elsif CLI.option(:admin)
+      [ new(ADMINISTRATOR) ]
+    elsif CLI.option(:test)
+      TEST_RECIPIENTS.map { |ddest| new(ddest) }
+    else
+      # 
+      # Les destinataires "normaux" définis pour cet envoi
+      # 
+      recipients(sender.source_file)
+    end.reject do |recipient|
+      # - On retire les exclus -
+      if exclusions(sender.source_file).key?(recipient.mail)
+        sender.reporter.add_exclusion(recipient, sender.source_file)
+        true
+      end
+    end
+  end
+  
+end
+
+# @return [Hash<mail => Recipient>] Table des destinatires à exclure
+# de l'envoi.
+def exclusions(srcfile = nil)
+  @exclusions ||= begin
+    tbl = {}
+    if srcfile.metadata['excludes']
+      options = {only_mail: true}.merge(metadata)
+      destinataires_from(metadata['excludes'], srcfile, **options).each do |recipient|
+        tbl.merge!(recipient.mail => recipient)
+      end
+    end
+    tbl
+  end
+end
+##
+# Les destinataires (non filtrés) du message (correspond au "To" du
+# mail). Mais la méthode peut être surclassée pour obtenir une liste
+# original d'expéditeurs
+# 
+def recipients(srcfile = nil)
+  @recipients ||= begin
+    mdata = srcfile.metadata
+    destinataires_from(mdata['to'], srcfile, **mdata)
+  end
+end
+
 # @return [Array<MailManager::Recipient>] La liste des
 # destinataires, même lorsqu'il n'y en a qu'un seul.
 # 

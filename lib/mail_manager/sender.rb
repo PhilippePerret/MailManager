@@ -57,8 +57,6 @@ def send
   Sender.suivi << "(commence par « #{source_file.raw_message[0..200].gsub(/\n/, '⏎')}»)".gris
   Sender.print_suivi
 
-  Recipient.source_file = source_file
-
   # 
   # Nombre de mails à envoyer
   # 
@@ -76,17 +74,25 @@ def send
   # 
   # Nombre d'exclusions
   # 
-  nombre_exclusions = exclusions.count
+  nombre_exclusions = MailManager::Recipient.exclusions.count
+
+  #
+  # Faut-il limiter le nombre d'envoi ? (options)
+  # 
+  nombre_mails_limite = nil
+  if CLI.options.key?(:n)
+    nombre_mails_limite = CLI.option(:n).to_i
+  end
 
   #
   # Demander confirmation, s'il y a plus d'un certain nombre
   # de destinataires
   # 
-  if NOMBRE_MAILS > 5
+  if nombre_mails_limite.nil? && NOMBRE_MAILS > 5
     text_nombre = ["#{NOMBRE_MAILS} destinataires"]
-    text_nombre << " (dont #{nombre_exclusions} exclusions)" if nombre_exclusions > 0
+    text_nombre << " (#{nombre_exclusions} exclusions)" if nombre_exclusions > 0
     text_nombre = text_nombre.join('')
-    Q.yes?("Dois-je procéder à ce mailing (#{text_nombre}) ?".jaune) || begin
+    Q.yes?("Dois-je procéder à #{'la simulation de ' if simulation?}ce mailing (#{text_nombre}) ?".jaune) || begin
       puts "Bien, je renonce.".bleu
       return
     end
@@ -106,18 +112,16 @@ def send
   # 
   reset_simulation if simulation?
 
+
   # 
   # BOUCLE SUR CHAQUE DESTINATAIRE
   # 
   recipients.each_with_index do |destinataire, idx|
     # +destinataire+ est une instance MailManager::Recipient
 
-    #
-    # Un destinataire exclus
-    # 
-    if exclusions.key?(destinataire.mail)
-      reporter.add_exclusion(destinataire, source_file)
-      next
+    if nombre_mails_limite && (idx+1) > nombre_mails_limite
+      puts "Nombre limite de mails atteint (#{nombre_mails_limite})".bleu
+      break
     end
     
     # 
@@ -149,6 +153,7 @@ def send
     if simulation?
 
       simule_envoi_mail(destinataire, code_final)
+      reporter.add_success(destinataire, source_file)
     
     else
 
@@ -198,36 +203,7 @@ end #/send
 #   dernier envoi qui ont échoué
 # 
 def recipients
-  @recipients ||= begin
-    if CLI.option(:mail_errors)
-      if File.exist?(reporter.errors_file)
-        errors = Marshal.load(File.read(reporter.errors_file))
-        File.delete(reporter.errors_file)
-        errors.map { |derr| derr[:recipient] }
-      else
-        raise MailManagerError, ERRORS['no_mails_errors_file']
-      end
-    elsif CLI.option(:admin)
-      [
-        MailManager::Recipient.new(ADMINISTRATOR)
-      ]
-    elsif CLI.option(:test)
-      TEST_RECIPIENTS.map do |ddest|
-        MailManager::Recipient.new(ddest)
-      end
-    else
-      # 
-      # Les destinataires "normaux" définis pour cet envoi
-      # 
-      source_file.destinataires
-    end
-  end
-end
-
-# @return [Hash] Table des exclusions, avec en clé les mails
-# 
-def exclusions
-  @exclusions ||= source_file.exclusions
+  MailManager::Recipient.final_recipients(self)
 end
 
 def reporter

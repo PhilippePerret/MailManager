@@ -22,9 +22,9 @@ attr_reader :variables
 
 def initialize(path)
   @path = path
+  require_module if module?
   traite_raw_code
   data_valid_or_raise
-  require_module if module?
 end
 
 # Méthode qui requierd le module qui accompagne peut-être le mail
@@ -96,21 +96,9 @@ end
 #   dans le fichier source_file_mail_type
 # 
 def destinataires
-  @destinataires ||= MailManager::Recipient.destinataires_from(metadata['to'], self, **metadata)
+  @destinataires ||= MailManager::Recipient.recipients(self)
 end
 
-def exclusions
-  @exclusions ||= begin
-    tbl = {}
-    if metadata['excludes']
-      options = {only_mail: true}.merge(metadata)
-      MailManager::Recipient.destinataires_from(metadata['excludes'], self, **options).each do |recipient|
-        tbl.merge!(recipient.mail => recipient)
-      end
-    end
-    tbl
-  end
-end
 
 # --- Predicate Methods ---
 
@@ -148,7 +136,8 @@ end
 # Méthode qui check que les métadonnées du fichier source soient bien
 # valides (doit contenir les données minimales.
 def data_valid_or_raise
-  metadata['to']        || raise('missing_to')
+  # metadata['to']        || raise('missing_to') # Plus obligatoire
+  destinataires.nil? && metadata['to'].nil? && raise('missing_to')
   metadata['from']      || raise('missing_from')
   metadata['subject']   || raise('missing_subject')
   # Pour les mails type, le module est obligatoire (alors qu'il est
@@ -157,7 +146,12 @@ def data_valid_or_raise
     File.exist?(module_path) || raise('missing_data')
   end
 rescue Exception => e
-  raise InvalidDataError, "#{ERRORS['source_file']['invalid_metadata']} : #{ERRORS['source_file'][e.message]}"
+  if ERRORS['source_file'].key?(e.message)
+    raise InvalidDataError, "#{ERRORS['source_file']['invalid_metadata']} : #{ERRORS['source_file'][e.message]}"
+  else
+    puts e.message.rouge
+    puts e.backtrace.join("\n").rouge if debug?
+  end
 end
 
 def module_path
