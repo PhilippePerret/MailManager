@@ -4,9 +4,11 @@ class SourceFileMailType < SourceFile
 
 def destinataires
   @destinataires ||= begin
-    table_exclus = exclusions
-    dsts = init_destinataires = super.reject do |recipient|
-      table_exclus.key?(recipient.mail)
+    table_exclus = Recipient.exclusions(self)
+    dsts = init_destinataires = Recipient
+      .destinataires_from(metadata['to'], self)
+      .reject do |recipient|
+        table_exclus.key?(recipient.mail)
     end.map do |recipient|
       {name: "#{recipient.patronyme} <#{recipient.mail}>", value: recipient}
     end

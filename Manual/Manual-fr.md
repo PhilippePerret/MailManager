@@ -360,7 +360,25 @@ Allez-vous mieux ?
 
 **Le nom de la variable est obligatoirement en minuscule**, même si elle est définie en majuscule dans le fichier de données.
 
-Dans le code, on peut utiliser les variables classiques (`mail`, `patronyme`, `fonction`) mais on peut aussi utiliser n’importe quelle propriété qui serait définie dans le [fichier module](#module-file). **Mais attention** : il faut que cette donnée soit définie pour tous les destinataires. Par exemple, si tous les destinataires définissent la propriété `album`, on peut avoir : 
+Dans le code, on peut utiliser les variables classiques (`mail`, `patronyme`, `fonction`) mais on peut aussi utiliser n’importe quelle propriété qui serait définie dans le [fichier module](#module-file). , en tant que méthode du module `RecipientExtension` puisqu’il s’agit toujours de propriétés propres aux destinataires. Par exemple :
+
+~~~ruby
+# in <affixe mail>.rb
+module RecipientExtension
+  
+  def album
+    @album ||= begin
+      self.books.last.title # valeur utilisée
+    end
+  end
+end
+~~~
+
+
+
+**Attention** : assurez-vous toujours que cette donnée soit définie pour tous les destinataires.
+
+Par exemple, si tous les destinataires définissent la propriété `album`, on peut avoir : 
 
 ~~~markdown
 ---
@@ -391,6 +409,31 @@ etc.
 
 
 Note implémentation : ces propriétés sont définies dans la constantes `FEMININES` dans le fichier `constants.rb` dans le cas où il faille en ajouter.
+
+
+
+## Traitement après envoi
+
+Grâce au [module qui accompagne le mail](#module-file), on peut faire un traitement particulier après l’envoi du fichier. Typiquement, ce traitement peut ajouter une ligne à un historique qui garde la trace des envois.
+
+Cette méthode s’appelle **`:after_sending`** et c’est une méthode d’instance de **`MailManager::Sender`**. Elle doit donc être définie dans le module **`SenderExtension`** et reçoit comme argument : le destinataire (instance `MailManager::Recipient`) et la fichier source (instance `MailManager::SourceFile`).
+
+~~~ruby
+# in <affixe-message>.rb
+
+module SenderExtension
+  
+  def	after_sending(recipient, srcfile)
+    # 
+    # Cette méthode est appelée après chaque envoi réussi, avec
+    # l'instance MailManager::Recipient du destinataire et
+    # l'instance MailManager::SourceFile du fichier message
+    #
+  end
+end
+~~~
+
+
 
 ---
 

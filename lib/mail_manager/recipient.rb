@@ -71,8 +71,12 @@ end
 # 
 def recipients(srcfile = nil)
   @recipients ||= begin
-    mdata = srcfile.metadata
-    destinataires_from(mdata['to'], srcfile, **mdata)
+    if srcfile.mail_type?
+      srcfile.destinataires
+    else
+      mdata = srcfile.metadata
+      destinataires_from(mdata['to'], srcfile, **mdata)
+    end
   end
 end
 
@@ -238,6 +242,27 @@ end #/<< self
     str = mail
     str = "#{patronyme} <#{mail}>" if patronyme
     return str
+  end
+
+  # @return [Hash] La table des variables-pourcentage dans le 
+  # message (%{...}) avec les valeurs qu'elles doivent prendre.
+  # En plus des variables régulières (:mail, :patronyme, etc.) il
+  # peut y avoir des variables propres. Elles sont définies dans 
+  # +custom_variables+
+  # @note
+  #   C'est aussi dans cette méthode qu'on ajoute les féminines.
+  # 
+  # @param [Array<Symbol>] all_variables TOUTES les variables attendues, même les régulières. Les propres doivent être définies dans le module RecipientExtension
+  def variables_template(all_variables)
+    # puts "all_variables = #{all_variables.inspect}"
+    tbl = {}
+    tbl.merge!(as_hash)
+    tbl.merge!(FEMININES[sexe])
+    all_variables.each do |var_name|
+      var_name = var_name.to_sym
+      tbl.key?(var_name) || tbl.merge!(var_name => self.send(var_name))
+    end
+    return tbl
   end
 
   def as_hash

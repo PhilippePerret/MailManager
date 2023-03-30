@@ -143,7 +143,10 @@ def data_valid_or_raise
   # Pour les mails type, le module est obligatoire (alors qu'il est
   # optionnel pour les mailings)
   if mail_type?
-    File.exist?(module_path) || raise('missing_data')
+    File.exist?(module_path) || begin
+      puts "Module attendu : #{module_path.inspect}".rouge
+      raise('missing_data')
+    end
   end
 rescue Exception => e
   if ERRORS['source_file'].key?(e.message)

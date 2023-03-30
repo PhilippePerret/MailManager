@@ -33,18 +33,31 @@ def assemble_code_final(recipient)
   body = source.message.dup
   body_brut = source.message_plain_text.dup
 
+  #
+  # Liste des variables (%{…})
+  # 
+  @variables_templates ||= begin
+    @replace_variable = false
+    body.scan(/\%\{(.+?)\}/).map do |found|
+      found[0]
+    end.uniq.map do |var|
+      @replace_variable = true # dès qu'il y en a une
+      var.to_sym
+    end
+  end
+
   # 
   # Finaliser le message pour le destinataire
   # 
-  if body.match?(/\%\{/)
-    data_template = recipient.as_hash.merge(FEMININES[recipient.sexe])
+  if @replace_variable
+    data_template = recipient.variables_template(@variables_templates)
     begin
       body      = body % data_template
       body_brut = body_brut % data_template
     rescue Exception => e
       puts "Problème avec un mail : #{e.message}".rouge
-      puts "body = #{body[0..200].inspect}"
-      puts "data_template = #{data_template.inspect}"
+      puts "body = #{body[0..200].inspect}".rouge
+      puts "data_template = #{data_template.inspect}".rouge
       puts e.backtrace.join("\n").orange
       exit 100
     end

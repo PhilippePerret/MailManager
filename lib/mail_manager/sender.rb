@@ -77,6 +77,18 @@ def send
   nombre_exclusions = MailManager::Recipient.exclusions.count
 
   #
+  # Seulement pour voir les adresses mails
+  # (petit bricolage pour débugger en direct)
+  if CLI.option(:mail_only)
+    puts "--- Liste des destinataires ---\n".bleu
+    recipients.each do |recipe|
+      puts "  - #{recipe.inspect}".bleu
+    end
+    puts "\n" + ("-"*40).bleu
+    return
+  end
+
+  #
   # Faut-il limiter le nombre d'envoi ? (options)
   # 
   nombre_mails_limite = nil
@@ -150,6 +162,8 @@ def send
     # 
     History.add(:send, {mail:mail, code_final:code_final, sender:sender_mail, recipient:destinataire})
 
+    is_success = true
+
     if simulation?
 
       simule_envoi_mail(destinataire, code_final)
@@ -171,10 +185,28 @@ def send
         exit 3
       rescue Exception => e
         reporter.add_failure(destinataire, source_file, e)
+        is_success = false
       else
         reporter.add_success(destinataire, source_file)
       end
     end
+
+    ##
+    # Si un traitement post-envoi est prévu
+    # 
+    if is_success && self.respond_to?(:after_sending)
+      if method(:after_sending).arity == 2
+        self.after_sending(destinataire, source_file)
+      else
+        puts <<-TEXT.orange
+        La méthode Sender#after_sending attend deux arguments :
+        - le destinataire (instance MailManager::Recipient)
+        - le fichier source (instance MailManager::SourceFile)
+        TEXT
+        exit
+      end
+    end
+
   end
   # 
   # Afficher le rapport final
