@@ -312,6 +312,9 @@ end #/<< self
     end    
   end
 
+  # Parfois défini
+  def id ; @id end
+
 
   # --- Predicate Methods ---
 

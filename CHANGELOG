@@ -1,6 +1,11 @@
+# 0.2.3
+
+  - Ajout d'un attribut `Recipient@id` qui est parfois fourni par la donnée (lorsqu'il s'agit d'un fichier CSV par exemple)
+
 # 0.2.2
 
   - Protection sur la méthode personnalisée `Sender#after_sending` pour avoir le bon nombre d'arguments.
+
 # 0.2.1
 
   - Correction du patronyme
