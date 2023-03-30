@@ -44,6 +44,21 @@ end
 # Pour envoyer le mail
 def send
 
+  # 
+  # Si une méthode de post-traitement existe (Sender#after_sending)
+  # on doit s'assurer, avant de commencer, qu'elle reçoit bien le
+  # nombre d'arguments voulus
+  # 
+  if self.respond_to?(:after_sending) && method(:after_sending).arity != 2
+    puts "Impossible de traiter l'after-sending…".rouge
+    puts <<-TEXT.orange
+    La méthode Sender#after_sending attend deux arguments :
+    - le destinataire (instance MailManager::Recipient)
+    - le fichier source (instance MailManager::SourceFile)
+    TEXT
+    exit
+  end
+
   #
   # Initialisation de l'historique pour cet envoi
   # 
@@ -195,16 +210,7 @@ def send
     # Si un traitement post-envoi est prévu
     # 
     if is_success && self.respond_to?(:after_sending)
-      if method(:after_sending).arity == 2
-        self.after_sending(destinataire, source_file)
-      else
-        puts <<-TEXT.orange
-        La méthode Sender#after_sending attend deux arguments :
-        - le destinataire (instance MailManager::Recipient)
-        - le fichier source (instance MailManager::SourceFile)
-        TEXT
-        exit
-      end
+      self.after_sending(destinataire, source_file)
     end
 
   end
