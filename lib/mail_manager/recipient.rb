@@ -54,8 +54,9 @@ end
 # de l'envoi.
 def exclusions(srcfile = nil)
   @exclusions ||= begin
+    metadata = srcfile.metadata
     tbl = {}
-    if srcfile.metadata['excludes']
+    if metadata['excludes']
       options = {only_mail: true}.merge(metadata)
       destinataires_from(metadata['excludes'], srcfile, **options).each do |recipient|
         tbl.merge!(recipient.mail => recipient)
@@ -64,6 +65,7 @@ def exclusions(srcfile = nil)
     tbl
   end
 end
+
 ##
 # Les destinataires (non filtrés) du message (correspond au "To" du
 # mail). Mais la méthode peut être surclassée pour obtenir une liste

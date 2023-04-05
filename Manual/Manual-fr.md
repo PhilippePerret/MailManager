@@ -401,7 +401,7 @@ On peut utiliser une sexualisation du message (différents suivant femme ou homm
 ---
 Ch%{ere} ami%{e},
 
-Vous êtes trop bon%{ne} avec moi.
+Vous êtes trop bon%{ne} avec moi. Si vous n'êtes pas %{la} destinataire de ce message, tant pis, je ne vous aurez pas oublié%{e}.
 
 etc.
 ~~~

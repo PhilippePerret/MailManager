@@ -35,6 +35,7 @@ FEMININES = {
     ette:   'ette', # sujet/suj{ette}
     eve:    'ève',   # bref/br{ève}
     ine:    'ine',    # certa{in}/ certaine
+    la:     'la',     # le/la
     lle:    'lle',    # bel/be{lle}
     madame: 'Madame',
     ne:     'ne',
@@ -53,6 +54,7 @@ FEMININES = {
     ette:   'et',     # sujet/suj{ette}
     eve:    'ef',     # bref/br{ève}
     ine:    'in',     # certa{in}/ certaine
+    la:     'le',     # le/la
     lle:    'l',      # bel/be{lle}
     madame: 'Monsieur',
     ne:     '',

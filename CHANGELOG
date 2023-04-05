@@ -1,3 +1,7 @@
+# 0.2.4
+
+  - Fixed bug sur recipient (exclusions)
+  
 # 0.2.3
 
   - Ajout d'un attribut `Recipient@id` qui est parfois fourni par la donnée (lorsqu'il s'agit d'un fichier CSV par exemple)
