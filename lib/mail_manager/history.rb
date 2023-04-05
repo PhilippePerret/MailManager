@@ -39,6 +39,8 @@ class << self
     fname = "#{Time.now.strftime('%Y-%m-%d-%H_%M')}-#{recipient.mail}.eml"
     fpath = File.join(folder_mails, fname)
     File.write(fpath, data[:code_final])
+  rescue Exception => e
+    puts "Problème d'enregistrement d'historique : #{e.message}".rouge
   end
 
   def log(msg)

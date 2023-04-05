@@ -1,3 +1,7 @@
+# 0.2.5
+
+  - Fixed bug quand mauvaise adresse mail (à l'enregistrement du mail)
+
 # 0.2.4
 
   - Fixed bug sur recipient (exclusions)
