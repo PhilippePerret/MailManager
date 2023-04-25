@@ -105,7 +105,7 @@ def universal_identifier
 end
 
 def message_id
-  @message_id ||= SecureRandom.uuid.upcase + "@icare-editions.fr"
+  SecureRandom.uuid.upcase + "@icare-editions.fr"
 end
 
 def date_mail
