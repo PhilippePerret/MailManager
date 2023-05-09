@@ -13,6 +13,7 @@ require_relative "mail_manager/sender"
 require_relative "mail_manager/reporter"
 require_relative "mail_manager/history"
 require_relative "mail_manager/utils"
+require_relative "mail_manager/api"
 
 module MailManager
   class Error < StandardError; end

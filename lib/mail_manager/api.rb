@@ -1,0 +1,149 @@
+=begin
+# class MailManager::API
+# ----------------------
+# L'idée de cette classe est de permettre d'appeler MailManager
+# de l'extérieur pour envoyer un mailing sans avoir le fichier
+# requis.
+#
+=end
+module MailManager
+class API
+
+  ##############################################
+  # @public
+  # @main
+  # @entry
+  # 
+  # Méthode d'entrée pour envoyer un mailing
+  #   MailManager::API.send(
+  #     <message>,
+  #     <destinataires>[,
+  #     <options>]
+  #   )
+  ##############################################
+  # 
+  # @param [String] message Le message, avec ses variables suivant destinataires
+  # @param [Array<Instance>] destinataires Liste d'instance de destinataires (voir dans le manuel les méthodes auxquels ils doivent répondre)
+  # @param [Hash] params Table des options/paramètres à appliquer
+  # 
+  def self.send(message, destinataires, params)
+    #
+    # On vérifie si tout est bon
+    # 
+    message.is_a?(String) || raise(ArgumentError.new("+message+ devrait être un string, le message brut à envoyer."))
+    message.length > 0 || raise(ArgumentError.new('Le message ne devrait pas être vide.'))
+    destinataires.is_a?(Array) || raise(ArgumentError.new('+destinataires+ devrait être une liste (de destinataires).'))
+    destinataires.count > 0 || raise(ArgumentError.new('Aucun destinataire n’est défini…'))
+    firstrec = destinataires.first
+    firstrec.respond_to?(:mail) || raise(ArgumentError.new('Les destinataires devraient être des instances qui répondent à la méthode #mail.'))
+    firstrec.respond_to?(:patronyme) || raise(ArgumentError.new('Les destinataires devraient être des instances qui répondent à la méthode #patronyme.'))
+    firstrec.respond_to?(:femme?) || raise(ArgumentError.new('Les destinataires devraient être des instances qui répondent à la méthode #femme?.'))
+    firstrec.respond_to?(:homme?) || raise(ArgumentError.new('Les destinataires devraient être des instances qui répondent à la méthode #homme?.'))
+    firstrec.respond_to?(:variables_template) || raise(ArgumentError.new('Les destinataires devraient être des instances qui répondent à la méthode #variables_template.'))
+
+    params.is_a?(Hash) || raise(ArgumentError.new("+params+ devrait être une table (Hash)."))
+    params.key?(:sender) || raise(ArgumentError.new("Les paramètres devraient définir :sender (patronyme<mail>)"))    
+    params[:sender].match?('@') || raise(ArgumentError.new("params[:sender] (#{params[:sender]}) est mal formaté… (devrait être ’patronyme<mail>’)"))
+    params.key?(:subject) || raise(ArgumentError.new('+params+ devrait définir le sujet du message (:subject).'))
+    subject = params[:subject]||params[:sujet]
+    subject.is_a?(String) || raise(ArgumentError.new('params[:subject] devrait être une chaine de caractères.'))
+    subject.length > 0 || raise(ArgumentError.new('Le sujet du message devrait être défini (c’est une chaine vide)…'))
+
+    #
+    # Méthodes à implémenter si elles n'existent pas
+    # 
+    # #as_to
+    unless firstrec.respond_to?(:as_to)
+      firstrec.class.define_method(:as_to) do
+        "#{patronyme}<#{mail}>"
+      end
+    end
+
+    #
+    # Définir la liste des destinataires
+    # 
+    MailManager::Recipient.final_recipients = destinataires
+
+    # 
+    # Indiquer qu'il n'y a aucun exclusion
+    # 
+    MailManager::Recipient.exclusions = []
+
+    # TODO
+    # Définir MailManager::SourceFile#sender[:mail]
+    # Pour les destinataires 
+    # - implémenter la méthode #variables_template
+    # - implémenter la méthode #as_to (patro<mail>)
+    # Implémenter la méthode #variables_template au destinataire donc
+    # par la classe des desinataires :
+    # destinataires.first.class.define_method('variables_template')
+    #
+
+    #
+    # Mocker source_file (MailManager::SourceFile)
+    # 
+    source_file = FakeSourceFile.new(message, params)
+    # - définir @sender (Hash avec :full) -
+    source_file.sender = {full: params[:sender], mail: nil, patronyme:nil}
+
+    #
+    # Mocker le message
+    # 
+    imessage = MailManager::Message.new(source_file, message, {mail_type: true})
+
+    # - pour définir SourceFile@message -
+    # - pour définir SourceFile@message_plain_text -
+    source_file.instance_mail_message = imessage
+
+    #
+    # Mocker mail (MailManager::Mail)
+    # 
+    mail = MailManager::Mail.new(source_file)
+    mail.subject = params[:subject] || raise("Il faut définir le sujet (params[:subject])")
+
+    #
+    # Instance de l'expéditeur
+    # 
+    sender = Sender.new(mail, source_file)
+
+    sender.activate_simulation(params[:simulation])
+
+    if params[:no_delay]
+      def sender.no_delai? 
+        true 
+      end
+    end
+
+    #
+    # On procède à l'envoi
+    # 
+    sender.send
+  end
+
+end #/class API
+
+#
+# class MailManager::FakeSourceFile
+# 
+class FakeSourceFile < SourceFile
+  def initialize(raw_message, params)
+    @raw_message = raw_message
+    @params = params
+  end
+  # @api @private
+  def instance_mail_message=(value)
+    @instance_mail_message = value
+  end
+  # @api @private
+  # @param [Hash] value {:full, :mail, :patronyme}
+  def sender=(value) 
+    @sender = value
+  end
+  # 
+  # Data
+  # 
+  def subject ; @params[:subject] end
+  def name    ; @params[:name] || "Mail-type par API"  end
+
+end #/class FakeSourceFile
+end #/module MailManager

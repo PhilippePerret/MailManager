@@ -93,6 +93,10 @@ end
 def subject
   @subject ||= source.subject
 end
+# @api @private
+def subject=(value)
+  @subject = value
+end
 
 def boundary
   @boundary ||= begin

@@ -47,7 +47,15 @@ def final_recipients(sender)
       end
     end
   end
-  
+end
+
+##
+# @api
+# @private
+# 
+# Pour définir la liste des destinataires
+def final_recipients=(value)
+  @final_recipients = value
 end
 
 # @return [Hash<mail => Recipient>] Table des destinatires à exclure
@@ -64,6 +72,15 @@ def exclusions(srcfile = nil)
     end
     tbl
   end
+end
+
+##
+# @api
+# @private
+# 
+# Pour définir de force la liste des exclusions
+def exclusions=(value)
+  @exclusions = value
 end
 
 ##
@@ -254,15 +271,35 @@ end #/<< self
   # @note
   #   C'est aussi dans cette méthode qu'on ajoute les féminines.
   # 
-  # @param [Array<Symbol>] all_variables TOUTES les variables attendues, même les régulières. Les propres doivent être définies dans le module RecipientExtension
+  # @param [Array<Symbol>] all_variables TOUTES les variables 
+  #                         attendues, même les régulières. Les 
+  #                         propres doivent être définies dans le 
+  #                         module RecipientExtension
   def variables_template(all_variables)
+    return self.class.variables_template(all_variables, self)
+  end
+  def self.variables_templates(all_variables, recipient)
     # puts "all_variables = #{all_variables.inspect}"
+    recipient_data = if recipient.respond_to?(:hash) 
+      recipient.as_hash
+    elsif recipient.respond_to?(:data)
+      recipient.data
+    else
+      {
+        mail:       recipient.mail,
+        prenom:     recipient.prenom,
+        nom:        recipient.nom,
+        patronyme:  recipient.patronyme,
+        sexe:       recipient.sexe,
+        fonction:   recipient.fonction,
+      }
+    end
     tbl = {}
-    tbl.merge!(as_hash)
-    tbl.merge!(FEMININES[sexe])
+    tbl.merge!(recipient_data)
+    tbl.merge!(FEMININES[recipient.sexe])
     all_variables.each do |var_name|
       var_name = var_name.to_sym
-      tbl.key?(var_name) || tbl.merge!(var_name => self.send(var_name))
+      tbl.key?(var_name) || tbl.merge!(var_name => recipient.send(var_name))
     end
     return tbl
   end

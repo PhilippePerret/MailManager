@@ -9,6 +9,7 @@
 1) l’envoi de simple texte, à une personne en particulier,
 2) l’envoi d’un mail modèle à un ensemble d’adresses défini dans des fichiers 
 3) l’envoi de mail-type à une ou plusieurs personnes
+4) [utilisation comme API](#api) en transmettant le message `String`, la liste des instances destinataires et optionnellement (sic) des options.
 
 ### Mail/mailing en ligne de commande
 
@@ -608,6 +609,80 @@ Comment ça va ?
 Phil
 
 ~~~
+
+---
+
+<a name="api"></a>
+
+## API
+
+*MailManager* peut être utilisé comme API, grâce à la méthode `MailManager::API.send` :
+
+~~~ruby
+require 'mail_manager'
+
+retour = MailManager::API.send(message, destinataires, params)
+
+# @param [String] message 			Le message à envoyer, en String, avec les
+#																variables destinataire
+# @param [Array] destinataires	Liste des instances destintaires. Voir ci-
+# 															dessous les méthodes requises
+# @param [Hash] params					Options, notamment pour savoir si c'est une
+# 															simulation ou pas.
+
+~~~
+
+### Message pour l’API
+
+Ici, c’est un simple texte qui peut ne contenir que le texte lui-même
+
+### Destinataires pour l’API
+
+C’est une liste d’instances de classe quelconque avec pour seul impératif de répondre aux méthodes suivantes :
+
+~~~ruby
+# mail 								Retourne l'adresse mail seule
+# patronyme						Le patronyme
+# femme? 							Retourne true si c'est une femme
+# homme?							Retourne true si c'est un homme
+# variables_template 	Reçoit en premier argument la liste Array des variables contenues
+#											dans le message. Cette méthode devrait donc retourner une table qui
+# 										définit toutes les clés, comme ci-dessous
+
+
+def variables_template(ary)
+  {
+    ary[0] => "#{mail}",
+    ary[1] => patronyme,
+    une_autre => "pour voir",
+    etc.
+  }
+end
+~~~
+
+
+
+### Options pour l’API
+
+C’est table doit contenir au moins le titre (`subject`) du message à transmettre.
+
+~~~ruby
+params = {
+  subject: 			"Sujet du message",
+  sender:  			'patronyme<mail@chez.lui>',
+  ### Optionnel ###
+  simulation: 	true, # true => simuler l'envoi,
+  no_delay: 		true, # true => aucun délai entre les envois (pas 
+  										# recommandé, sauf pour les simulations)
+  name: 				'Nom de l’envoi', 		# juste pour le suivi
+ }
+~~~
+
+
+
+
+
+---
 
 ## Définition de la police et de la taille
 

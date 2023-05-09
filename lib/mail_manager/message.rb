@@ -76,11 +76,6 @@ class Message
     CSS
   end
 
-  # def head_style
-  #   "table tr td {padding: 0.5em 0;}"
-  # end
-
-
   # @return [HTMLString] les rangées de la table pour le mail
   def html_rows
     if mail_type?

@@ -220,7 +220,7 @@ def send
   reporter.display_report
 
   # 
-  # Ouverture des messages simulés
+  # Ouverture des messages simulés ?
   # 
   if simulation?
     if Q.yes?('Dois-je ouvrir les messages masculins/féminins ?'.jaune)
@@ -317,6 +317,11 @@ end
 
 def simulation?
   :TRUE == @forsim ||= true_or_false(CLI.option(:simulation))
+end
+# @api
+# @private
+def activate_simulation(value = true)
+  @forsim = value ? :TRUE : :FALSE
 end
 
 end #/class Sender
