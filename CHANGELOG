@@ -1,3 +1,7 @@
+# 0.3.0
+
+  - Première implémentation de l'API
+
 # 0.2.5
 
   - Fixed bug quand mauvaise adresse mail (à l'enregistrement du mail)
