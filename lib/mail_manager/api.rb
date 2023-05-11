@@ -81,7 +81,7 @@ class API
     #
     # Mocker le message
     # 
-    imessage = MailManager::Message.new(source_file, message, {mail_type: true})
+    # imessage = MailManager::Message.new(source_file, message, {mail_type: true})
 
     # - pour définir SourceFile@message -
     # - pour définir SourceFile@message_plain_text -
