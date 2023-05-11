@@ -26,12 +26,13 @@ class API
   # @param [Array<Instance>] destinataires Liste d'instance de destinataires (voir dans le manuel les méthodes auxquels ils doivent répondre)
   # @param [Hash] params Table des options/paramètres à appliquer
   # 
-  def self.send(message, destinataires, params)
+  def self.send(path_message, destinataires, params)
     #
     # On vérifie si tout est bon
     # 
-    message.is_a?(String) || raise(ArgumentError.new("+message+ devrait être un string, le message brut à envoyer."))
-    message.length > 0 || raise(ArgumentError.new('Le message ne devrait pas être vide.'))
+    path_message.is_a?(String) || raise(ArgumentError.new("+path_message+ devrait être un string, le message brut à envoyer."))
+    File.exist?(path_message) || raise(ArgumentError.new('Le fichier du message est introuvable.'))
+    
     destinataires.is_a?(Array) || raise(ArgumentError.new('+destinataires+ devrait être une liste (de destinataires).'))
     destinataires.count > 0 || raise(ArgumentError.new('Aucun destinataire n’est défini…'))
     firstrec = destinataires.first
@@ -69,22 +70,13 @@ class API
     # 
     MailManager::Recipient.exclusions = []
 
-    # TODO
-    # Définir MailManager::SourceFile#sender[:mail]
-    # Pour les destinataires 
-    # - implémenter la méthode #variables_template
-    # - implémenter la méthode #as_to (patro<mail>)
-    # Implémenter la méthode #variables_template au destinataire donc
-    # par la classe des desinataires :
-    # destinataires.first.class.define_method('variables_template')
-    #
-
     #
     # Mocker source_file (MailManager::SourceFile)
     # 
-    source_file = FakeSourceFile.new(message, params)
+    # source_file = FakeSourceFile.new(message, params)
+    source_file = SourceFile.new(path_message)
     # - définir @sender (Hash avec :full) -
-    source_file.sender = {full: params[:sender], mail: nil, patronyme:nil}
+    # source_file.sender = {full: params[:sender], mail: nil, patronyme:nil}
 
     #
     # Mocker le message
@@ -93,7 +85,7 @@ class API
 
     # - pour définir SourceFile@message -
     # - pour définir SourceFile@message_plain_text -
-    source_file.instance_mail_message = imessage
+    # source_file.instance_mail_message = imessage
 
     #
     # Mocker mail (MailManager::Mail)
@@ -124,26 +116,12 @@ end #/class API
 
 #
 # class MailManager::FakeSourceFile
-# 
+# (NE SERT PLUS, NORMALEMENT)
 class FakeSourceFile < SourceFile
-  def initialize(raw_message, params)
-    @raw_message = raw_message
-    @params = params
-  end
-  # @api @private
-  def instance_mail_message=(value)
-    @instance_mail_message = value
-  end
   # @api @private
   # @param [Hash] value {:full, :mail, :patronyme}
   def sender=(value) 
     @sender = value
   end
-  # 
-  # Data
-  # 
-  def subject ; @params[:subject] end
-  def name    ; @params[:name] || "Mail-type par API"  end
-
 end #/class FakeSourceFile
 end #/module MailManager

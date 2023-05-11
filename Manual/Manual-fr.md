@@ -621,10 +621,10 @@ Phil
 ~~~ruby
 require 'mail_manager'
 
-retour = MailManager::API.send(message, destinataires, params)
+retour = MailManager::API.send(path_message, destinataires, params)
 
-# @param [String] message 			Le message à envoyer, en String, avec les
-#																variables destinataire
+# @param [String] path_message  Le fichier du message à envoyer. Doit être
+# 															formaté comme un mail-type
 # @param [Array] destinataires	Liste des instances destintaires. Voir ci-
 # 															dessous les méthodes requises
 # @param [Hash] params					Options, notamment pour savoir si c'est une
@@ -634,7 +634,7 @@ retour = MailManager::API.send(message, destinataires, params)
 
 ### Message pour l’API
 
-Ici, c’est un simple texte qui peut ne contenir que le texte lui-même
+Il est défini par son path vers le fichier, qui doit être formaté comme un [fichier normal de mail-type](#message-definition).
 
 ### Destinataires pour l’API
 
