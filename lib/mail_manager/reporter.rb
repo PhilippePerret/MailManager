@@ -37,7 +37,7 @@ class Reporter
       puts "ERRORS".rouge
       puts "------".rouge
       @errors.each do |derr|
-        puts "  🧨 #{derr[:error].message} (#{derr[:recipient].mail}"
+        puts "  🧨 #{derr[:error].message} (#{derr[:recipient].mail})"
       end
       # 
       # On consigne les erreurs dans un fichier, au format Marshal
