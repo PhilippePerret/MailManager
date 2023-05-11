@@ -74,9 +74,10 @@ class API
     # Mocker source_file (MailManager::SourceFile)
     # 
     # source_file = FakeSourceFile.new(message, params)
-    source_file = SourceFile.new(path_message)
+    # source_file = SourceFile.new(path_message)
+    source_file = FakeSourceFile.new(path_message)
     # - définir @sender (Hash avec :full) -
-    # source_file.sender = {full: params[:sender], mail: nil, patronyme:nil}
+    source_file.sender = {full: params[:sender], mail: nil, patronyme:nil}
 
     #
     # Mocker le message
