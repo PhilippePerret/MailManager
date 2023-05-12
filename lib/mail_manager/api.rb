@@ -16,16 +16,21 @@ class API
   # 
   # Méthode d'entrée pour envoyer un mailing
   #   MailManager::API.send(
-  #     <message>,
+  #     <path au message>,
   #     <destinataires>[,
   #     <options>]
   #   )
   ##############################################
   # 
-  # @param [String] message Le message, avec ses variables suivant destinataires
+  # @param [String] path_message Le chemin d'accès au message
   # @param [Array<Instance>] destinataires Liste d'instance de destinataires (voir dans le manuel les méthodes auxquels ils doivent répondre)
   # @param [Hash] params Table des options/paramètres à appliquer
   # 
+  # @return [Hash] Le résultat obtenu avec, notamment, les destinataires qui ont pu être contactés et les erreurs éventuels
+  # {
+  #   recipients_ok: [Array<Recipient> recipients à qui le mail a pu être envoyé>], 
+  #   recipients_ko: [Array<{recipient: [Recipient], raison:[String]}>]
+  # }
   def self.send(path_message, destinataires, params)
     #
     # On vérifie si tout est bon
@@ -110,7 +115,12 @@ class API
     #
     # On procède à l'envoi
     # 
-    sender.send
+    resultat = sender.send
+
+    #
+    # On retourne le résultat
+    # 
+    return resultat
   end
 
 end #/class API

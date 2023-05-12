@@ -41,7 +41,19 @@ def initialize(mail, source_file)
   @source_file = source_file
 end
 
-# Pour envoyer le mail
+##############################
+###     ENVOI DU MAIL      ###
+##############################
+# 
+# @return (notamment pour l'API) une table contenant :
+# {
+#   recipients_ok[<liste des recipients qui ont bien reçu le mail>]
+#   recipients_ko[<liste des recipients à problème>]
+# }
+# Note : 
+#   - pour :recipients_ok, c'est la liste des instances Recipients
+#   - pour :recipients_ko, c'est la liste de {recipient: Recipient, raison: "<le problème>"} 
+# 
 def send
 
   # 
@@ -139,6 +151,11 @@ def send
   # 
   reset_simulation if simulation?
 
+  #
+  # Pour le résultat final renvoyé
+  # 
+  recipients_ok = []
+  recipients_ko = []
 
   # 
   # BOUCLE SUR CHAQUE DESTINATAIRE
@@ -160,6 +177,7 @@ def send
       puts "\n\nAbandon…".bleu
       exit 3
     rescue Exception => e
+      recipients_ko << {recipient: destinataire, raison: e.message}
       reporter.add_failure(destinataire, source_file, e)      
       next
     end
@@ -200,10 +218,18 @@ def send
         exit 3
       rescue Exception => e
         reporter.add_failure(destinataire, source_file, e)
+        recipients_ko << {recipient:destinataire, raison: e.message}
         is_success = false
       else
         reporter.add_success(destinataire, source_file)
       end
+    end
+
+    #
+    # Pour le résultat final
+    # 
+    if is_success
+      recipients_ok << destinataire
     end
 
     ##
@@ -228,6 +254,11 @@ def send
       `open "#{mail_homme_path}"` if File.exist?(mail_homme_path)
     end
   end
+
+  return {
+    recipients_ok: recipients_ok,
+    recipients_ko: recipients_ko,
+  }
 end #/send
 
 
