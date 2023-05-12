@@ -131,9 +131,11 @@ def send
     text_nombre = ["#{NOMBRE_MAILS} destinataires"]
     text_nombre << " (#{nombre_exclusions} exclusions)" if nombre_exclusions > 0
     text_nombre = text_nombre.join('')
-    Q.yes?("Dois-je procéder à #{'la simulation de ' if simulation?}ce mailing (#{text_nombre}) ?".jaune) || begin
-      puts "Bien, je renonce.".bleu
-      return
+    unless simulation?
+      Q.yes?("Dois-je procéder à #{'la simulation de ' if simulation?}ce mailing (#{text_nombre}) ?".jaune) || begin
+        puts "Bien, je renonce.".bleu
+        return
+      end
     end
     # 
     # Ouvrir le log du rapporteur si on a plus de 5 mails
