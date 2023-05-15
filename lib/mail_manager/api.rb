@@ -100,8 +100,6 @@ class API
     # 
     sender = Sender.new(mail, source_file)
 
-    puts "params[:simulation] est #{params[:simulation].inspect}"
-    sleep 3
     sender.activate_simulation(params[:simulation])
 
     if params[:no_delay]
