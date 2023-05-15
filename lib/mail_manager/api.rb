@@ -50,10 +50,6 @@ class API
     params.is_a?(Hash) || raise(ArgumentError.new("+params+ devrait être une table (Hash)."))
     params.key?(:sender) || raise(ArgumentError.new("Les paramètres devraient définir :sender (patronyme<mail>)"))    
     params[:sender].match?('@') || raise(ArgumentError.new("params[:sender] (#{params[:sender]}) est mal formaté… (devrait être ’patronyme<mail>’)"))
-    # params.key?(:subject) || raise(ArgumentError.new('+params+ devrait définir le sujet du message (:subject).'))
-    # subject = params[:subject]||params[:sujet]
-    # subject.is_a?(String) || raise(ArgumentError.new('params[:subject] devrait être une chaine de caractères.'))
-    # subject.length > 0 || raise(ArgumentError.new('Le sujet du message devrait être défini (c’est une chaine vide)…'))
 
     #
     # Méthodes à implémenter si elles n'existent pas

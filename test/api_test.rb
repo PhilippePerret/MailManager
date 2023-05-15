@@ -128,27 +128,6 @@ class ApiTest < Minitest::Test
     end
     assert_match('params[:sender] (badsender) est mal formaté… (devrait être ’patronyme<mail>’)', err.message)
 
-    # Les paramètres doivent définir :subject
-    # 
-    err = assert_raises(ArgumentError) do
-      MailManager::API.send('Mon message', [dest1, dest2], {sender:"Moi<pour@toi.gmail>"})
-    end
-    assert_match('+params+ devrait définir le sujet du message (:subject).', err.message)
-
-    # Le sujet devrait être un string
-    # 
-    err = assert_raises(ArgumentError) do
-      MailManager::API.send('Mon message', [dest1, dest2], {subject:12, sender:"Moi<pour@toi.gmail>"})
-    end
-    assert_match('params[:subject] devrait être une chaine de caractères.', err.message)
-
-    # Le sujet devrait être un string non vide
-    # 
-    err = assert_raises(ArgumentError) do
-      MailManager::API.send('Mon message', [dest1, dest2], {subject:"", sender:"Moi<pour@toi.gmail>"})
-    end
-    assert_match('Le sujet du message devrait être défini (c’est une chaine vide)…', err.message)
-
   end
 
   def test_envoi_le_mail_si_bons_arguments

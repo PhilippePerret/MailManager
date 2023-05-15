@@ -354,6 +354,8 @@ end
 # @api
 # @private
 def activate_simulation(value = true)
+  puts "Je mets la simulation à #{value.inspect}".bleu
+  sleep 4
   @forsim = value ? :TRUE : :FALSE
 end
 
